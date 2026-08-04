@@ -195,6 +195,9 @@
 <!-- ============ FONTE DO ÁUDIO ============ -->
 <section class="card">
   <h2>Áudio</h2>
+  <div style="display:flex;justify-content:flex-end;margin:-8px 0 10px">
+    <button class="small ghost" id="btnLimpar">Limpar tela</button>
+  </div>
   <div class="abas">
     <button class="aba ativa" id="abaGravar">Gravar</button>
     <button class="aba" id="abaArquivo">Enviar arquivo</button>
@@ -451,7 +454,7 @@
 const WORKER_PADRAO = 'https://scriba-ia.eneaspr.workers.dev';
 
 /* Versão do aplicativo, exibida sob o nome no cabeçalho. */
-const VERSAO_APP = '0.11';
+const VERSAO_APP = '1.0';
 
 /* ---------- armazenamento tolerante ---------- */
 const mem = {};
@@ -2056,6 +2059,40 @@ function carimbo(){
   return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`;
 }
 function aviso(alvo, tipo, txt){ $(alvo).innerHTML = `<div class="msg ${tipo}">${txt}</div>`; }
+
+/**
+ * Devolve a tela ao estado inicial. Nada é perdido: o que já foi
+ * transcrito continua no histórico e pode ser reaberto de lá.
+ */
+$('btnLimpar').onclick = () => {
+  if(gravando && !confirm('Há uma gravação em andamento. Descartar e limpar a tela?')) return;
+  if(!temSupabase && utterances.length &&
+     !confirm('Sem o Supabase ligado, nada foi guardado. Limpar mesmo assim?')) return;
+
+  if(rec && rec.state !== 'inactive'){ rec.onstop = null; rec.stop(); }
+  encerrarCaptura();
+
+  limparResultados();
+  chunks = []; blob = null; nomeArquivo = '';
+
+  $('player').removeAttribute('src');
+  $('playBox').classList.add('hidden');
+  $('fileInfo').textContent = '';
+  $('btnBaixarAudio').classList.add('hidden');
+  $('btnWav').classList.add('hidden');
+  $('conversaoMsg').innerHTML = '';
+
+  $('titulo').value = '';
+  $('nFal').value = '';
+  $('busca').value = '';
+  $('timer').textContent = '00:00:00';
+  $('recMeta').textContent = 'pronto para gravar';
+  $('btnTranscrever').disabled = true;
+  $('arquivo').value = '';
+
+  buscaPronta = false; avisouBusca = false;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
 
 function limparResultados(){
   utterances=[]; nomes={}; resumoTexto='';
