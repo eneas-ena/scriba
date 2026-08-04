@@ -12,139 +12,117 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
   :root{
-    --navy:#0F1B33;
-    --navy-2:#16233F;
-    --navy-3:#1E2E4F;
-    --gold:#C9A227;
-    --gold-soft:#E0C05A;
-    --linen:#F2EEE4;
-    --muted:#8E9AB2;
-    --ok:#5FB37A;
-    --warn:#D98C3F;
-    --err:#C4585A;
+    --navy:#0F1B33; --navy-2:#16233F; --navy-3:#1E2E4F;
+    --gold:#C9A227; --gold-soft:#E0C05A; --linen:#F2EEE4; --muted:#8E9AB2;
+    --ok:#5FB37A; --warn:#D98C3F; --err:#C4585A;
     --ui:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  body{
-    background:var(--navy);
-    color:var(--linen);
-    font-family:'Cormorant Garamond',Georgia,serif;
-    font-size:18px;
-    line-height:1.6;
-    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-    min-height:100vh;
-  }
+  body{background:var(--navy);color:var(--linen);font-family:'Cormorant Garamond',Georgia,serif;
+    font-size:18px;line-height:1.6;min-height:100vh;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
   .wrap{max-width:760px;margin:0 auto;padding:24px 18px 80px}
 
   header{text-align:center;padding:18px 0 26px;border-bottom:1px solid rgba(201,162,39,.28);margin-bottom:26px}
   header h1{font-family:'Cinzel',serif;font-size:2.1rem;letter-spacing:.22em;color:var(--gold);font-weight:600}
   header p{font-size:.95rem;color:var(--muted);font-family:var(--ui);letter-spacing:.04em;margin-top:6px}
 
-  .card{
-    background:var(--navy-2);
-    border:1px solid rgba(201,162,39,.18);
-    border-radius:12px;
-    padding:20px;
-    margin-bottom:18px;
-  }
-  .card h2{
-    font-family:'Cinzel',serif;font-size:.85rem;letter-spacing:.18em;
-    color:var(--gold);text-transform:uppercase;font-weight:600;
-    margin-bottom:16px;display:flex;align-items:center;gap:10px;
-  }
+  .card{background:var(--navy-2);border:1px solid rgba(201,162,39,.18);border-radius:12px;padding:20px;margin-bottom:18px}
+  .card h2{font-family:'Cinzel',serif;font-size:.85rem;letter-spacing:.18em;color:var(--gold);
+    text-transform:uppercase;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:10px}
   .card h2::after{content:'';flex:1;height:1px;background:rgba(201,162,39,.2)}
 
-  label{display:block;font-family:var(--ui);font-size:.78rem;letter-spacing:.06em;
-    color:var(--muted);text-transform:uppercase;margin-bottom:6px}
-  input[type=text],input[type=number],select,textarea{
-    width:100%;background:var(--navy);color:var(--linen);
-    border:1px solid rgba(201,162,39,.25);border-radius:8px;
-    padding:11px 12px;font-family:var(--ui);font-size:.92rem;
-  }
+  label{display:block;font-family:var(--ui);font-size:.78rem;letter-spacing:.06em;color:var(--muted);
+    text-transform:uppercase;margin-bottom:6px}
+  input[type=text],input[type=number],input[type=search],select,textarea{
+    width:100%;background:var(--navy);color:var(--linen);border:1px solid rgba(201,162,39,.25);
+    border-radius:8px;padding:11px 12px;font-family:var(--ui);font-size:.92rem}
   input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:transparent}
   .field{margin-bottom:15px}
   .row{display:flex;gap:12px;flex-wrap:wrap}
   .row>*{flex:1;min-width:140px}
+  .row.tight>*{flex:0 1 auto;min-width:0}
 
-  .check{display:flex;align-items:center;gap:9px;font-family:var(--ui);
-    font-size:.85rem;color:var(--linen);text-transform:none;letter-spacing:0;margin-bottom:9px;cursor:pointer}
+  .check{display:flex;align-items:center;gap:9px;font-family:var(--ui);font-size:.85rem;
+    color:var(--linen);text-transform:none;letter-spacing:0;margin-bottom:9px;cursor:pointer}
   .check input{width:17px;height:17px;accent-color:var(--gold);flex:none}
   .hint{font-family:var(--ui);font-size:.76rem;color:var(--muted);line-height:1.5;margin-top:6px}
 
-  button{
-    background:var(--gold);color:var(--navy);border:none;border-radius:8px;
-    padding:12px 20px;font-family:'Cinzel',serif;font-weight:600;
-    font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
-    transition:filter .15s;
-  }
+  button{background:var(--gold);color:var(--navy);border:none;border-radius:8px;padding:12px 20px;
+    font-family:'Cinzel',serif;font-weight:600;font-size:.82rem;letter-spacing:.1em;
+    text-transform:uppercase;cursor:pointer;transition:filter .15s}
   button:hover:not(:disabled){filter:brightness(1.12)}
   button:disabled{opacity:.35;cursor:not-allowed}
   button.ghost{background:transparent;color:var(--gold);border:1px solid rgba(201,162,39,.45)}
+  button.perigo{background:transparent;color:#E39A9B;border:1px solid rgba(196,88,90,.5)}
   button.small{padding:8px 13px;font-size:.72rem}
 
-  /* Medidor de nível */
-  .meter{height:14px;background:var(--navy);border-radius:7px;overflow:hidden;
-    border:1px solid rgba(201,162,39,.2);position:relative;margin:4px 0 2px}
-  .meter-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--ok),var(--gold) 72%,var(--err) 92%);
-    transition:width .06s linear}
-  .meter-scale{display:flex;justify-content:space-between;font-family:var(--ui);
-    font-size:.65rem;color:var(--muted);letter-spacing:.05em}
+  /* abas */
+  .abas{display:flex;gap:0;margin-bottom:18px;border-bottom:1px solid rgba(201,162,39,.2)}
+  .aba{flex:1;background:none;border:none;border-bottom:2px solid transparent;border-radius:0;
+    color:var(--muted);padding:11px 6px;font-family:'Cinzel',serif;font-size:.78rem;letter-spacing:.1em}
+  .aba.ativa{color:var(--gold);border-bottom-color:var(--gold)}
 
-  /* Gravação */
+  .meter{height:14px;background:var(--navy);border-radius:7px;overflow:hidden;
+    border:1px solid rgba(201,162,39,.2);margin:4px 0 2px}
+  .meter-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--ok),var(--gold) 72%,var(--err) 92%);transition:width .06s linear}
+  .meter-scale{display:flex;justify-content:space-between;font-family:var(--ui);font-size:.65rem;color:var(--muted);letter-spacing:.05em}
+
   .rec-area{text-align:center;padding:8px 0}
   .timer{font-family:var(--ui);font-size:2.6rem;font-weight:200;letter-spacing:.06em;
     font-variant-numeric:tabular-nums;color:var(--linen)}
   .rec-meta{font-family:var(--ui);font-size:.76rem;color:var(--muted);letter-spacing:.05em;margin-top:2px}
-  .rec-btn{
-    width:86px;height:86px;border-radius:50%;margin:18px auto 12px;display:block;
-    background:var(--err);border:3px solid rgba(255,255,255,.14);
-    font-size:0;padding:0;position:relative;
-  }
-  .rec-btn::after{content:'';position:absolute;inset:0;margin:auto;
-    width:26px;height:26px;background:#fff;border-radius:50%;transition:.2s}
+  .rec-btn{width:86px;height:86px;border-radius:50%;margin:18px auto 12px;display:block;
+    background:var(--err);border:3px solid rgba(255,255,255,.14);font-size:0;padding:0;position:relative}
+  .rec-btn::after{content:'';position:absolute;inset:0;margin:auto;width:26px;height:26px;background:#fff;border-radius:50%;transition:.2s}
   .rec-btn.on::after{width:24px;height:24px;border-radius:4px}
   .rec-btn.on{animation:pulse 1.7s infinite}
   @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(196,88,90,.55)}50%{box-shadow:0 0 0 16px rgba(196,88,90,0)}}
   @media (prefers-reduced-motion:reduce){.rec-btn.on{animation:none}}
 
-  .badge{display:inline-block;font-family:var(--ui);font-size:.7rem;letter-spacing:.1em;
-    text-transform:uppercase;padding:3px 9px;border-radius:20px;
-    background:rgba(201,162,39,.14);color:var(--gold);border:1px solid rgba(201,162,39,.3)}
+  .solta{border:2px dashed rgba(201,162,39,.35);border-radius:12px;padding:32px 18px;text-align:center;
+    font-family:var(--ui);font-size:.9rem;color:var(--muted);cursor:pointer;transition:.15s}
+  .solta:hover,.solta.sobre{border-color:var(--gold);background:rgba(201,162,39,.06);color:var(--linen)}
+  .solta strong{display:block;font-family:'Cinzel',serif;color:var(--gold);font-size:.85rem;
+    letter-spacing:.12em;margin-bottom:8px}
 
-  /* Etapas */
+  .badge{display:inline-block;font-family:var(--ui);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+    padding:3px 9px;border-radius:20px;background:rgba(201,162,39,.14);color:var(--gold);border:1px solid rgba(201,162,39,.3)}
+
   .steps{list-style:none;font-family:var(--ui);font-size:.86rem}
   .steps li{padding:8px 0;display:flex;align-items:center;gap:11px;color:var(--muted)}
   .steps li .dot{width:9px;height:9px;border-radius:50%;background:var(--navy-3);flex:none}
-  .steps li.doing{color:var(--linen)}
-  .steps li.doing .dot{background:var(--gold);animation:blink 1.1s infinite}
-  .steps li.done{color:var(--ok)}
-  .steps li.done .dot{background:var(--ok)}
-  .steps li.fail{color:var(--err)}
-  .steps li.fail .dot{background:var(--err)}
+  .steps li.doing{color:var(--linen)} .steps li.doing .dot{background:var(--gold);animation:blink 1.1s infinite}
+  .steps li.done{color:var(--ok)} .steps li.done .dot{background:var(--ok)}
+  .steps li.fail{color:var(--err)} .steps li.fail .dot{background:var(--err)}
   @keyframes blink{50%{opacity:.3}}
 
-  /* Transcrição */
+  .barra{height:6px;background:var(--navy);border-radius:3px;overflow:hidden;margin:8px 0 2px}
+  .barra i{display:block;height:100%;width:0%;background:var(--gold);transition:width .2s}
+
   .turn{padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)}
   .turn:last-child{border:none}
-  .turn .who{font-family:'Cinzel',serif;font-size:.74rem;letter-spacing:.13em;
-    color:var(--gold);text-transform:uppercase;display:block;margin-bottom:3px}
+  .turn .who{font-family:'Cinzel',serif;font-size:.74rem;letter-spacing:.13em;color:var(--gold);
+    text-transform:uppercase;display:block;margin-bottom:3px}
   .turn .when{font-family:var(--ui);font-size:.68rem;color:var(--muted);margin-left:8px;letter-spacing:.04em}
   .turn p{font-size:1.02rem;line-height:1.65}
   .scroll{max-height:420px;overflow-y:auto;padding-right:8px}
 
   .namer{display:flex;gap:9px;align-items:center;margin-bottom:9px}
-  .namer .tag{font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.1em;
-    color:var(--gold);width:88px;flex:none}
+  .namer .tag{font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.1em;color:var(--gold);width:88px;flex:none}
 
-  .out{background:var(--navy);border-radius:8px;padding:16px;
-    border:1px solid rgba(201,162,39,.15);font-size:1.02rem}
-  .out h3{font-family:'Cinzel',serif;color:var(--gold);font-size:.9rem;
-    letter-spacing:.1em;margin:16px 0 7px;text-transform:uppercase}
+  .out{background:var(--navy);border-radius:8px;padding:16px;border:1px solid rgba(201,162,39,.15);font-size:1.02rem}
+  .out h3{font-family:'Cinzel',serif;color:var(--gold);font-size:.9rem;letter-spacing:.1em;margin:16px 0 7px;text-transform:uppercase}
   .out h3:first-child{margin-top:0}
-  .out ul{margin:6px 0 6px 20px}
-  .out li{margin-bottom:4px}
-  .out p{margin-bottom:9px}
-  .out strong{color:var(--gold-soft)}
+  .out ul{margin:6px 0 6px 20px} .out li{margin-bottom:4px}
+  .out p{margin-bottom:9px} .out strong{color:var(--gold-soft)}
+
+  .item{border:1px solid rgba(201,162,39,.15);border-radius:9px;padding:13px 14px;margin-bottom:10px;
+    background:var(--navy);cursor:pointer;transition:.15s}
+  .item:hover{border-color:rgba(201,162,39,.45)}
+  .item .t{font-family:'Cinzel',serif;font-size:.86rem;color:var(--gold-soft);letter-spacing:.05em;margin-bottom:4px}
+  .item .m{font-family:var(--ui);font-size:.73rem;color:var(--muted);letter-spacing:.03em}
+  .item .acoes{margin-top:9px;display:flex;gap:8px}
 
   .msg{font-family:var(--ui);font-size:.84rem;padding:11px 13px;border-radius:8px;margin-top:12px;line-height:1.5}
   .msg.err{background:rgba(196,88,90,.13);border:1px solid rgba(196,88,90,.4);color:#F0B4B5}
@@ -152,10 +130,8 @@
   .msg.warn{background:rgba(217,140,63,.12);border:1px solid rgba(217,140,63,.35);color:#F0C79A}
 
   .hidden{display:none!important}
-  .center{text-align:center}
   .mt{margin-top:14px}
-  footer{text-align:center;font-family:var(--ui);font-size:.72rem;color:var(--muted);
-    letter-spacing:.08em;padding:28px 0 10px}
+  footer{text-align:center;font-family:var(--ui);font-size:.72rem;color:var(--muted);letter-spacing:.08em;padding:28px 0 10px}
 </style>
 </head>
 <body>
@@ -166,63 +142,74 @@
   <p>Gravação · Transcrição com falantes · Resumo</p>
 </header>
 
-<!-- ============ 1. CONFIGURAÇÃO ============ -->
+<!-- ============ CONFIGURAÇÃO ============ -->
 <section class="card">
   <h2>Configuração</h2>
   <div class="field">
     <label for="worker">Endereço do Worker</label>
-    <input type="text" id="worker" placeholder="https://scriba-ia.eneaspr.workers.dev">
-    <div class="hint">Cole aqui a URL do seu Worker no Cloudflare. Fica salvo neste aparelho.</div>
+    <input type="text" id="worker" placeholder="https://scriba-ia.eneaspr.workers.dev" autocapitalize="off" autocorrect="off" spellcheck="false">
   </div>
-  <div class="row">
+  <div class="row tight">
     <button class="small" id="btnSalvar">Salvar</button>
     <button class="small ghost" id="btnTestarWorker">Testar conexão</button>
   </div>
-  <span id="cfgMsg" class="badge hidden mt">Salvo</span>
   <div id="workerMsg"></div>
 </section>
 
-<!-- ============ 2. MICROFONE ============ -->
+<!-- ============ FONTE DO ÁUDIO ============ -->
 <section class="card">
-  <h2>Microfone</h2>
-  <div class="field">
-    <label for="mic">Entrada de áudio</label>
-    <select id="mic"><option>Toque em "Liberar microfone"</option></select>
-    <div class="hint" id="micHint">O navegador só mostra os nomes dos microfones depois que você libera o acesso.</div>
+  <h2>Áudio</h2>
+  <div class="abas">
+    <button class="aba ativa" id="abaGravar">Gravar</button>
+    <button class="aba" id="abaArquivo">Enviar arquivo</button>
   </div>
 
-  <div class="row" style="margin-bottom:14px">
-    <button class="small ghost" id="btnPermitir">Liberar microfone</button>
-    <button class="small ghost" id="btnTestar">Testar nível</button>
-  </div>
-
-  <div id="meterBox" class="hidden">
-    <label>Nível de entrada</label>
-    <div class="meter"><div class="meter-fill" id="meterFill"></div></div>
-    <div class="meter-scale"><span>silêncio</span><span>ideal</span><span>estourando</span></div>
-    <div class="hint" id="meterHint">Fale de onde você vai gravar. O ideal é a barra dançar na faixa dourada.</div>
-  </div>
-
-  <div style="margin-top:16px">
-    <label>Processamento do áudio</label>
-    <label class="check"><input type="checkbox" id="cbNoise"> Redução de ruído</label>
-    <label class="check"><input type="checkbox" id="cbEcho"> Cancelamento de eco</label>
-    <label class="check"><input type="checkbox" id="cbAgc" checked> Ganho automático</label>
-    <div class="hint">Com microfone externo, deixe redução de ruído e eco <strong>desligados</strong> — eles cortam vozes distantes achando que são ruído. Mantenha o ganho automático ligado para equilibrar quem fala mais longe.</div>
-  </div>
-</section>
-
-<!-- ============ 3. GRAVAÇÃO ============ -->
-<section class="card">
-  <h2>Gravação</h2>
-  <div class="rec-area">
-    <div class="timer" id="timer">00:00:00</div>
-    <div class="rec-meta" id="recMeta">pronto para gravar</div>
-    <button class="rec-btn" id="btnRec" aria-label="Iniciar gravação"></button>
-    <div class="row" style="justify-content:center">
-      <button class="small ghost hidden" id="btnPause">Pausar</button>
-      <button class="small ghost hidden" id="btnDescartar">Descartar</button>
+  <!-- --- gravar --- -->
+  <div id="paineGravar">
+    <div class="field">
+      <label for="mic">Entrada de áudio</label>
+      <select id="mic"><option>Toque em "Liberar microfone"</option></select>
     </div>
+    <div class="row tight" style="margin-bottom:14px">
+      <button class="small ghost" id="btnPermitir">Liberar microfone</button>
+      <button class="small ghost" id="btnTestar">Testar nível</button>
+    </div>
+
+    <div id="meterBox" class="hidden">
+      <label>Nível de entrada</label>
+      <div class="meter"><div class="meter-fill" id="meterFill"></div></div>
+      <div class="meter-scale"><span>silêncio</span><span>ideal</span><span>estourando</span></div>
+      <div class="hint" id="meterHint">Fale de onde você vai gravar. O ideal é a barra dançar na faixa dourada.</div>
+    </div>
+
+    <div style="margin-top:16px">
+      <label>Processamento do áudio</label>
+      <label class="check"><input type="checkbox" id="cbNoise"> Redução de ruído</label>
+      <label class="check"><input type="checkbox" id="cbEcho"> Cancelamento de eco</label>
+      <label class="check"><input type="checkbox" id="cbAgc" checked> Ganho automático</label>
+      <div class="hint">Com microfone externo, deixe redução de ruído e eco <strong>desligados</strong> — eles cortam vozes distantes achando que são ruído.</div>
+    </div>
+
+    <div class="rec-area">
+      <div class="timer" id="timer">00:00:00</div>
+      <div class="rec-meta" id="recMeta">pronto para gravar</div>
+      <button class="rec-btn" id="btnRec" aria-label="Iniciar gravação"></button>
+      <div class="row tight" style="justify-content:center">
+        <button class="small ghost hidden" id="btnPause">Pausar</button>
+        <button class="small ghost hidden" id="btnDescartar">Descartar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- --- arquivo --- -->
+  <div id="paineArquivo" class="hidden">
+    <div class="solta" id="solta">
+      <strong>Escolher arquivo</strong>
+      Toque aqui para selecionar um áudio do aparelho.<br>
+      No computador, também dá para arrastar e soltar.
+      <div class="hint" style="margin-top:10px">Aceita m4a, mp3, wav, aac, ogg, webm, mp4 e outros formatos comuns.</div>
+    </div>
+    <input type="file" id="arquivo" accept="audio/*,video/mp4,video/webm" class="hidden">
   </div>
 
   <div id="playBox" class="hidden mt">
@@ -231,9 +218,13 @@
   </div>
 </section>
 
-<!-- ============ 4. TRANSCRIÇÃO ============ -->
-<section class="card" id="cardTrans">
+<!-- ============ TRANSCRIÇÃO ============ -->
+<section class="card">
   <h2>Transcrição</h2>
+  <div class="field">
+    <label for="titulo">Título</label>
+    <input type="text" id="titulo" placeholder="Ex.: Reunião de diáconos — orçamento">
+  </div>
   <div class="row">
     <div class="field">
       <label for="nFal">Quantas pessoas falam</label>
@@ -251,11 +242,13 @@
     </div>
   </div>
 
-  <div class="row">
+  <div class="row tight">
     <button id="btnTranscrever" disabled>Transcrever</button>
     <button class="ghost hidden" id="btnBaixarAudio">Baixar áudio</button>
     <button class="ghost hidden" id="btnRetomar">Retomar</button>
   </div>
+
+  <div class="barra hidden" id="barraEnvio"><i id="barraEnvioFill"></i></div>
 
   <ul class="steps hidden" id="steps">
     <li id="s1"><span class="dot"></span> Enviando áudio</li>
@@ -265,20 +258,20 @@
   <div id="transMsg"></div>
 </section>
 
-<!-- ============ 5. FALANTES ============ -->
+<!-- ============ FALANTES ============ -->
 <section class="card hidden" id="cardFalantes">
   <h2>Quem é quem</h2>
   <div class="hint" style="margin-bottom:14px">O serviço separa as vozes, mas não sabe os nomes. Troque abaixo e o texto se atualiza.</div>
   <div id="namers"></div>
 </section>
 
-<!-- ============ 6. TEXTO ============ -->
+<!-- ============ TEXTO ============ -->
 <section class="card hidden" id="cardTexto">
   <h2>Texto</h2>
   <div class="scroll" id="texto"></div>
 </section>
 
-<!-- ============ 7. RESUMO ============ -->
+<!-- ============ RESUMO ============ -->
 <section class="card hidden" id="cardResumo">
   <h2>Resumo estruturado</h2>
   <div class="field">
@@ -289,97 +282,144 @@
   <button id="btnResumo">Gerar resumo</button>
   <div id="resumoMsg"></div>
   <div class="out hidden mt" id="resumo"></div>
-  <div class="row mt hidden" id="exportRow">
-    <button class="small ghost" id="btnTxt">Baixar .txt</button>
-    <button class="small ghost" id="btnMd">Baixar .md</button>
-    <button class="small ghost" id="btnCopiar">Copiar tudo</button>
+
+  <div class="hidden mt" id="exportRow">
+    <label>Exportar</label>
+    <div class="row tight">
+      <button class="small ghost" id="btnDocx">Word (.docx)</button>
+      <button class="small ghost" id="btnTxt">Texto (.txt)</button>
+      <button class="small ghost" id="btnMd">Markdown (.md)</button>
+      <button class="small ghost" id="btnCopiar">Copiar tudo</button>
+    </div>
+    <label class="check" style="margin-top:12px"><input type="checkbox" id="cbSoResumo"> Exportar só o resumo, sem a transcrição</label>
   </div>
 </section>
 
-<footer>SCRIBA · protótipo v0.5</footer>
-</div>
+<!-- ============ ÁUDIO GUARDADO ============ -->
+<section class="card hidden" id="cardAudio">
+  <h2>Áudio guardado</h2>
+  <div id="audioInfo" class="hint" style="margin-bottom:14px"></div>
+  <div class="row tight">
+    <button class="small ghost" id="btnManterAudio">Manter</button>
+    <button class="small perigo" id="btnApagarAudio">Apagar agora</button>
+  </div>
+  <div class="hint" style="margin-top:10px">A transcrição e o resumo ficam guardados de qualquer forma. Apagar remove só o arquivo de som.</div>
+  <div id="audioMsg"></div>
+</section>
 
+<!-- ============ HISTÓRICO ============ -->
+<section class="card hidden" id="cardHistorico">
+  <h2>Histórico</h2>
+  <div class="row tight" style="margin-bottom:14px">
+    <input type="search" id="busca" placeholder="Buscar por palavra no título, no texto ou no resumo" style="flex:1;min-width:200px">
+    <button class="small ghost" id="btnBuscar">Buscar</button>
+  </div>
+  <div id="lista"></div>
+  <div id="histMsg"></div>
+</section>
+
+<footer>SCRIBA · protótipo v0.6</footer>
+</div>
 <script>
-/* ================= armazenamento tolerante ================= */
+/* =====================================================================
+   SCRIBA v0.6
+   Fluxo do áudio:
+     com Supabase → navegador envia direto ao depósito, o Worker só
+                    assina os endereços. Sem teto de tamanho.
+     sem Supabase → o áudio passa pelo Worker (serve para arquivos pequenos).
+   ===================================================================== */
+
+/* ---------- armazenamento tolerante ---------- */
 const mem = {};
 const store = {
   get(k){ try{ return localStorage.getItem(k); }catch(e){ return mem[k] ?? null; } },
-  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){ mem[k]=v; } }
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){ mem[k]=v; } },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){ delete mem[k]; } }
 };
 const $ = id => document.getElementById(id);
 
-/* ================= estado ================= */
-let stream=null, rec=null, chunks=[], blob=null;
-let t0=0, acc=0, tick=null, gravando=false, pausado=false;
+/* ---------- estado ---------- */
+let stream=null, rec=null, chunks=[], blob=null, nomeArquivo='';
+let t0=0, acc=0, tick=null, gravando=false, pausado=false, processando=false;
 let audioCtx=null, analyser=null, rafId=null, wakeLock=null;
-let utterances=[], nomes={}, resumoTexto='', processando=false;
+let utterances=[], nomes={}, resumoTexto='';
+let temSupabase=false;
+let registro = { id:null, transcriptId:null, audioPath:null, duracao:0, origem:'gravado' };
 
-/* ================= configuração ================= */
-$('worker').value = normalizarUrl(store.get('scriba_worker') || '');
-$('btnSalvar').onclick = () => {
-  const limpo = normalizarUrl($('worker').value);
-  $('worker').value = limpo;          // mostra ao usuário o endereço já corrigido
-  store.set('scriba_worker', limpo);
-  $('cfgMsg').classList.remove('hidden');
-  setTimeout(()=>$('cfgMsg').classList.add('hidden'), 1800);
-};
-/** Normaliza o que o usuário digitou: garante https://, tira barras e caminhos sobrando. */
+/* =====================================================================
+   CONFIGURAÇÃO E COMUNICAÇÃO
+   ===================================================================== */
 function normalizarUrl(bruto){
-  let u = (bruto || '').trim().replace(/\s+/g,'');
+  let u = (bruto||'').trim().replace(/\s+/g,'');
   if(!u) return '';
   if(!/^https?:\/\//i.test(u)) u = 'https://' + u;
   u = u.replace(/\/+$/,'');
-  u = u.replace(/\/(teste|upload|transcrever|status|resumo)$/i,'');
+  u = u.replace(/\/(teste|upload|transcrever|status|resumo|historico)$/i,'');
   return u;
 }
 const workerUrl = () => normalizarUrl($('worker').value);
 
-$('btnTestarWorker').onclick = async () => {
-  if(!workerUrl()){ aviso('workerMsg','err','Informe o endereço do Worker.'); return; }
-  aviso('workerMsg','ok','Verificando…');
+$('worker').value = normalizarUrl(store.get('scriba_worker') || '');
+
+$('btnSalvar').onclick = () => {
+  const limpo = normalizarUrl($('worker').value);
+  $('worker').value = limpo;
+  store.set('scriba_worker', limpo);
+  aviso('workerMsg','ok','Endereço salvo.');
+  verificarWorker(true);
+};
+
+$('btnTestarWorker').onclick = () => verificarWorker(false);
+
+async function verificarWorker(silencioso){
+  if(!workerUrl()){ if(!silencioso) aviso('workerMsg','err','Informe o endereço do Worker.'); return; }
   try{
     const j = await chamar('/teste', {}, 15000);
+    temSupabase = Boolean(j.supabase);
     const falta = [];
     if(!j.assemblyai) falta.push('ASSEMBLYAI_KEY');
     if(!j.anthropic)  falta.push('ANTHROPIC_KEY');
-    if(falta.length) aviso('workerMsg','warn','Worker respondeu, mas faltam variáveis: '+falta.join(' e ')+'. Adicione no Cloudflare e faça Deploy de novo.');
-    else aviso('workerMsg','ok','Worker respondendo e chaves configuradas.');
+    if(falta.length){
+      aviso('workerMsg','warn','Worker na versão '+j.versao+', mas faltam variáveis: '+falta.join(' e ')+'. Adicione no Cloudflare e faça Deploy de novo.');
+    }else if(!temSupabase){
+      aviso('workerMsg','warn','Worker na versão '+j.versao+'. O Supabase não está configurado: o histórico fica desligado e o áudio passa pelo Worker (bom só para arquivos pequenos).');
+    }else{
+      aviso('workerMsg','ok','Worker na versão '+j.versao+'. Tudo configurado.');
+    }
+    $('cardHistorico').classList.toggle('hidden', !temSupabase);
+    if(temSupabase) carregarHistorico();
   }catch(e){
-    aviso('workerMsg','err','Não consegui falar com o Worker: '+e.message+'. Confira se a URL está certa e se o Deploy foi feito.');
+    temSupabase=false;
+    aviso('workerMsg','err','Não consegui falar com o Worker: '+e.message);
   }
-};
+}
 
 /** Chama o Worker e devolve JSON. Quando algo vem errado, diz o que veio. */
 async function chamar(caminho, opcoes, ms){
   const alvo = workerUrl() + caminho;
   try{
-    if(new URL(alvo).host === location.host){
+    if(new URL(alvo).host === location.host)
       throw new Error('o endereço do Worker está apontando para o próprio site. Confira se ele começa com https:// e termina em .workers.dev');
-    }
   }catch(e){
     if(e.message.includes('próprio site')) throw e;
     throw new Error('o endereço do Worker parece inválido: '+workerUrl());
   }
+
   let r;
-  try{
-    r = await comPrazo(alvo, opcoes, ms);
-  }catch(e){
-    throw new Error(`não consegui alcançar ${caminho} — ${e.message}`);
-  }
+  try{ r = await comPrazo(alvo, opcoes, ms); }
+  catch(e){ throw new Error(`não consegui alcançar ${caminho} — ${e.message}`); }
 
   const bruto = await r.text();
   let j;
-  try{
-    j = JSON.parse(bruto);
-  }catch(e){
-    const amostra = (bruto || '').trim().slice(0,180).replace(/</g,'‹') || '(resposta vazia)';
+  try{ j = JSON.parse(bruto); }
+  catch(e){
+    const amostra = (bruto||'').trim().slice(0,180).replace(/</g,'‹') || '(resposta vazia)';
     throw new Error(`${caminho} respondeu ${r.status}, mas não em JSON. Veio isto: ${amostra}`);
   }
   if(!r.ok) throw new Error(j.erro || `${caminho} respondeu ${r.status}`);
   return j;
 }
 
-/** Chamada com prazo máximo — evita ficar esperando para sempre. */
 async function comPrazo(url, opcoes, ms){
   const controle = new AbortController();
   const alarme = setTimeout(()=>controle.abort(), ms);
@@ -390,15 +430,48 @@ async function comPrazo(url, opcoes, ms){
   }finally{ clearTimeout(alarme); }
 }
 
-/* ================= microfone ================= */
+/** Envio com barra de progresso — importante em arquivos grandes. */
+function enviarComProgresso(url, metodo, corpo, tipo, aoProgredir){
+  return new Promise((ok, falha)=>{
+    const x = new XMLHttpRequest();
+    x.open(metodo, url, true);
+    if(tipo) x.setRequestHeader('Content-Type', tipo);
+    x.upload.onprogress = e => { if(e.lengthComputable && aoProgredir) aoProgredir(e.loaded/e.total); };
+    x.onload = () => (x.status>=200 && x.status<300)
+      ? ok(x.responseText)
+      : falha(new Error(`o depósito recusou o envio (${x.status}) ${String(x.responseText||'').slice(0,140)}`));
+    x.onerror = () => falha(new Error('falha de rede durante o envio'));
+    x.ontimeout = () => falha(new Error('o envio demorou demais'));
+    x.timeout = 30*60*1000;
+    x.send(corpo);
+  });
+}
+
+/* =====================================================================
+   ABAS
+   ===================================================================== */
+$('abaGravar').onclick  = () => trocarAba('gravar');
+$('abaArquivo').onclick = () => trocarAba('arquivo');
+
+function trocarAba(qual){
+  const g = qual==='gravar';
+  $('abaGravar').classList.toggle('ativa', g);
+  $('abaArquivo').classList.toggle('ativa', !g);
+  $('paineGravar').classList.toggle('hidden', !g);
+  $('paineArquivo').classList.toggle('hidden', g);
+  if(!g && gravando) parar();
+}
+
+/* =====================================================================
+   MICROFONE
+   ===================================================================== */
 $('btnPermitir').onclick = async () => {
   try{
     const s = await navigator.mediaDevices.getUserMedia({audio:true});
     s.getTracks().forEach(t=>t.stop());
     await listarMics();
-    $('micHint').textContent = 'Microfone liberado. Se você conectar um externo agora, toque de novo para atualizar a lista.';
   }catch(e){
-    aviso('transMsg','err','Não consegui acessar o microfone: '+e.message+'. Verifique as permissões do navegador.');
+    aviso('transMsg','err','Não consegui acessar o microfone: '+e.message);
   }
 };
 
@@ -409,12 +482,11 @@ async function listarMics(){
   const salvo = store.get('scriba_mic');
   ins.forEach((d,i)=>{
     const o=document.createElement('option');
-    o.value=d.deviceId;
-    o.textContent=d.label || ('Entrada '+(i+1));
+    o.value=d.deviceId; o.textContent=d.label || ('Entrada '+(i+1));
     if(d.deviceId===salvo) o.selected=true;
     sel.appendChild(o);
   });
-  if(!ins.length){ sel.innerHTML='<option>Nenhum microfone encontrado</option>'; }
+  if(!ins.length) sel.innerHTML='<option>Nenhum microfone encontrado</option>';
 }
 $('mic').onchange = () => store.set('scriba_mic', $('mic').value);
 navigator.mediaDevices.addEventListener?.('devicechange', () => { if($('mic').options.length>1) listarMics(); });
@@ -430,7 +502,6 @@ function constraints(){
   }};
 }
 
-/* ================= medidor de nível ================= */
 $('btnTestar').onclick = async () => {
   if(rafId){ pararMedidor(); $('btnTestar').textContent='Testar nível'; return; }
   try{
@@ -448,17 +519,13 @@ function iniciarMedidor(s, proprio){
   analyser.fftSize = 1024;
   src.connect(analyser);
   const buf = new Float32Array(analyser.fftSize);
-  let pico = 0;
   const loop = () => {
     analyser.getFloatTimeDomainData(buf);
     let soma=0, max=0;
     for(let i=0;i<buf.length;i++){ soma+=buf[i]*buf[i]; max=Math.max(max,Math.abs(buf[i])); }
-    const rms = Math.sqrt(soma/buf.length);
-    const db = 20*Math.log10(rms||1e-8);
-    const pct = Math.max(0, Math.min(100, (db+60)/60*100));
-    $('meterFill').style.width = pct.toFixed(1)+'%';
-    pico = Math.max(pico, max);
-    if(max > 0.985) $('meterHint').innerHTML = '<strong style="color:#C4585A">Estourando.</strong> Afaste o microfone ou desligue o ganho automático.';
+    const db = 20*Math.log10(Math.sqrt(soma/buf.length)||1e-8);
+    $('meterFill').style.width = Math.max(0,Math.min(100,(db+60)/60*100)).toFixed(1)+'%';
+    if(max>0.985) $('meterHint').innerHTML = '<strong style="color:#C4585A">Estourando.</strong> Afaste o microfone ou desligue o ganho automático.';
     rafId = requestAnimationFrame(loop);
   };
   loop();
@@ -471,15 +538,24 @@ function pararMedidor(){
   $('meterFill').style.width='0%';
 }
 
-/* ================= formato de gravação ================= */
+/* =====================================================================
+   GRAVAÇÃO
+   ===================================================================== */
 function mime(){
   const opts=['audio/webm;codecs=opus','audio/webm','audio/mp4;codecs=mp4a.40.2','audio/mp4','audio/aac'];
   for(const m of opts){ if(window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m; }
   return '';
 }
-function ext(m){ return m.includes('webm') ? 'webm' : 'm4a'; }
+function ext(tipo){
+  if(!tipo) return 'bin';
+  if(tipo.includes('webm')) return 'webm';
+  if(tipo.includes('mp4') || tipo.includes('aac')) return 'm4a';
+  if(tipo.includes('mpeg')) return 'mp3';
+  if(tipo.includes('wav')) return 'wav';
+  if(tipo.includes('ogg')) return 'ogg';
+  return 'bin';
+}
 
-/* ================= gravação ================= */
 $('btnRec').onclick = () => gravando ? parar() : iniciar();
 
 async function iniciar(){
@@ -487,7 +563,7 @@ async function iniciar(){
     limparResultados();
     stream = await navigator.mediaDevices.getUserMedia(constraints());
     const m = mime();
-    rec = new MediaRecorder(stream, m ? {mimeType:m, audioBitsPerSecond:64000} : {});
+    rec = new MediaRecorder(stream, m ? {mimeType:m, audioBitsPerSecond:48000} : {});
     chunks=[];
     rec.ondataavailable = e => { if(e.data.size) chunks.push(e.data); };
     rec.onstop = finalizar;
@@ -502,17 +578,18 @@ async function iniciar(){
     $('recMeta').textContent = 'gravando · '+(m||'formato padrão');
     pararMedidor(); iniciarMedidor(stream, false);
     travarTela();
-  }catch(e){
-    aviso('transMsg','err','Não foi possível iniciar: '+e.message);
-  }
+  }catch(e){ aviso('transMsg','err','Não foi possível iniciar: '+e.message); }
 }
 
 $('btnPause').onclick = () => {
   if(!rec) return;
-  if(pausado){ rec.resume(); t0=Date.now(); tick=setInterval(atualizarTimer,250); pausado=false;
-    $('btnPause').textContent='Pausar'; $('recMeta').textContent='gravando'; $('btnRec').classList.add('on'); }
-  else{ rec.pause(); acc+=Date.now()-t0; clearInterval(tick); pausado=true;
-    $('btnPause').textContent='Continuar'; $('recMeta').textContent='pausado'; $('btnRec').classList.remove('on'); }
+  if(pausado){
+    rec.resume(); t0=Date.now(); tick=setInterval(atualizarTimer,250); pausado=false;
+    $('btnPause').textContent='Pausar'; $('recMeta').textContent='gravando'; $('btnRec').classList.add('on');
+  }else{
+    rec.pause(); acc+=Date.now()-t0; clearInterval(tick); pausado=true;
+    $('btnPause').textContent='Continuar'; $('recMeta').textContent='pausado'; $('btnRec').classList.remove('on');
+  }
 };
 
 $('btnDescartar').onclick = () => {
@@ -528,13 +605,12 @@ function parar(){ if(rec && rec.state!=='inactive') rec.stop(); }
 
 function finalizar(){
   blob = new Blob(chunks, {type: rec.mimeType || 'audio/webm'});
+  registro.origem='gravado';
+  registro.duracao = Math.round((acc + (pausado?0:Date.now()-t0))/1000);
+  nomeArquivo = `gravacao.${ext(blob.type)}`;
   encerrarCaptura();
-  $('player').src = URL.createObjectURL(blob);
-  $('playBox').classList.remove('hidden');
-  $('fileInfo').textContent = `${(blob.size/1048576).toFixed(1)} MB · ${$('timer').textContent} · ${blob.type||'áudio'}`;
+  mostrarAudio();
   $('recMeta').textContent = 'gravação concluída';
-  $('btnTranscrever').disabled = false;
-  $('btnBaixarAudio').classList.remove('hidden');
 }
 
 function encerrarCaptura(){
@@ -549,60 +625,109 @@ function encerrarCaptura(){
 }
 
 function atualizarTimer(){
-  const ms = acc + (Date.now()-t0);
-  const s = Math.floor(ms/1000);
-  const h=String(Math.floor(s/3600)).padStart(2,'0');
-  const m=String(Math.floor(s%3600/60)).padStart(2,'0');
-  const g=String(s%60).padStart(2,'0');
-  $('timer').textContent = `${h}:${m}:${g}`;
+  const s = Math.floor((acc + (Date.now()-t0))/1000);
+  const p = n => String(n).padStart(2,'0');
+  $('timer').textContent = `${p(Math.floor(s/3600))}:${p(Math.floor(s%3600/60))}:${p(s%60)}`;
 }
 
-/* manter a tela acesa durante a gravação */
 async function travarTela(){
   try{ if('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); }catch(e){}
 }
 function soltarTela(){ try{ wakeLock?.release(); wakeLock=null; }catch(e){} }
 document.addEventListener('visibilitychange', () => {
-  if(document.visibilityState==='visible' && (gravando || processando)) travarTela();
+  if(document.visibilityState==='visible' && (gravando||processando)) travarTela();
 });
 
-$('btnBaixarAudio').onclick = () => {
-  if(!blob) return;
-  baixar(blob, `scriba-${carimbo()}.${ext(blob.type)}`);
-};
+/* =====================================================================
+   ARQUIVO EXTERNO
+   ===================================================================== */
+$('solta').onclick = () => $('arquivo').click();
+$('arquivo').onchange = e => { if(e.target.files[0]) receberArquivo(e.target.files[0]); };
 
-/* ================= transcrição ================= */
+['dragenter','dragover'].forEach(ev => $('solta').addEventListener(ev, e => {
+  e.preventDefault(); $('solta').classList.add('sobre');
+}));
+['dragleave','drop'].forEach(ev => $('solta').addEventListener(ev, e => {
+  e.preventDefault(); $('solta').classList.remove('sobre');
+}));
+$('solta').addEventListener('drop', e => {
+  const f = e.dataTransfer?.files?.[0];
+  if(f) receberArquivo(f);
+});
+
+function receberArquivo(f){
+  limparResultados();
+  blob = f;
+  nomeArquivo = f.name || ('audio.'+ext(f.type));
+  registro.origem='arquivo';
+  registro.duracao = 0;
+  if(!$('titulo').value.trim()){
+    $('titulo').value = f.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');
+  }
+  mostrarAudio();
+}
+
+function mostrarAudio(){
+  const url = URL.createObjectURL(blob);
+  $('player').src = url;
+  $('player').onloadedmetadata = () => {
+    if(isFinite($('player').duration) && $('player').duration>0){
+      registro.duracao = Math.round($('player').duration);
+      atualizarInfoArquivo();
+    }
+  };
+  $('playBox').classList.remove('hidden');
+  atualizarInfoArquivo();
+  $('btnTranscrever').disabled=false;
+  $('btnBaixarAudio').classList.remove('hidden');
+}
+
+function atualizarInfoArquivo(){
+  if(!blob) return;
+  const mb = (blob.size/1048576).toFixed(1);
+  const aviso = blob.size > 45*1048576
+    ? ' · atenção: acima de 50 MB o Supabase pode recusar; veja Storage › Settings'
+    : '';
+  $('fileInfo').textContent = `${nomeArquivo} · ${mb} MB · ${duracaoTexto(registro.duracao)} · ${blob.type||'tipo desconhecido'}${aviso}`;
+}
+
+$('btnBaixarAudio').onclick = () => { if(blob) baixar(blob, `scriba-${carimbo()}.${ext(blob.type)}`); };
+
+/* =====================================================================
+   TRANSCRIÇÃO
+   ===================================================================== */
 $('btnTranscrever').onclick = async () => {
   if(!blob) return;
   if(!workerUrl()){ aviso('transMsg','err','Informe o endereço do Worker na primeira seção.'); return; }
 
   $('transMsg').innerHTML='';
   $('steps').classList.remove('hidden');
-  ['s1','s2','s3'].forEach(i=>$(i).className='');
+  ['s1','s2','s3'].forEach(i=>{ $(i).className=''; });
+  $('s1').innerHTML='<span class="dot"></span> Enviando áudio';
+  $('s2').innerHTML='<span class="dot"></span> Transcrevendo e separando falantes';
   $('btnTranscrever').disabled=true;
+  processando=true; travarTela();
 
   try{
-    // 1 — envio
     passo('s1','doing');
-    $('s1').innerHTML = `<span class="dot"></span> Enviando áudio · ${(blob.size/1048576).toFixed(2)} MB`;
-    // text/plain evita a consulta prévia de CORS, que o Safari trata com rigor.
-    // O corpo continua sendo o áudio binário; o Worker lê os bytes do mesmo jeito.
-    const upJson = await chamar('/upload', {
-      method:'POST', headers:{'Content-Type':'text/plain'}, body: blob
-    }, 180000);
+    const endereco = temSupabase ? await enviarParaDeposito() : await enviarPeloWorker();
     passo('s1','done');
+    $('barraEnvio').classList.add('hidden');
 
-    // 2 — transcrição
     passo('s2','doing');
     const n = parseInt($('nFal').value);
-    const stJson = await chamar('/transcrever', {
+    const inicio = await chamar('/transcrever', {
       method:'POST', headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({ audio_url: upJson.upload_url, falantes: (n>0?n:null) })
+      body: JSON.stringify({ audio_url: endereco, falantes: (n>0?n:null) })
     }, 30000);
 
-    // 3 e 4 — acompanhamento e montagem
-    guardarId(stJson.id);
-    await acompanhar(stJson.id);
+    registro.transcriptId = inicio.id;
+    store.set('scriba_ultimo_id', inicio.id);
+    $('btnRetomar').classList.remove('hidden');
+
+    await acompanhar(inicio.id);
+    await salvarRegistro();
+    mostrarCartaoAudio();
   }catch(e){
     ['s1','s2','s3'].forEach(i=>{ if($(i).className==='doing') $(i).className='fail'; });
     aviso('transMsg','err','Deu problema: '+e.message);
@@ -612,16 +737,54 @@ $('btnTranscrever').onclick = async () => {
   }
 };
 
+/** Caminho principal: o áudio vai direto do navegador ao Supabase. */
+async function enviarParaDeposito(){
+  const preparo = await chamar('/audio/preparar', {
+    method:'POST', headers:{'Content-Type':'text/plain'},
+    body: JSON.stringify({ nome: nomeArquivo })
+  }, 25000);
+
+  $('barraEnvio').classList.remove('hidden');
+  const total = (blob.size/1048576).toFixed(1);
+
+  const enviar = metodo => enviarComProgresso(
+    preparo.url, metodo, blob, blob.type || 'application/octet-stream',
+    fracao => {
+      $('barraEnvioFill').style.width = (fracao*100).toFixed(1)+'%';
+      $('s1').innerHTML = `<span class="dot"></span> Enviando áudio · ${(fracao*100).toFixed(0)}% de ${total} MB`;
+    }
+  );
+
+  try{ await enviar('PUT'); }
+  catch(e){ await enviar('POST'); }   // alguns servidores aceitam só um dos dois
+
+  registro.audioPath = preparo.path;
+  const link = await chamar('/audio/link', {
+    method:'POST', headers:{'Content-Type':'text/plain'},
+    body: JSON.stringify({ path: preparo.path, horas: 4 })
+  }, 25000);
+  return link.url;
+}
+
+/** Caminho de reserva: sem Supabase, o áudio passa pelo Worker. */
+async function enviarPeloWorker(){
+  if(blob.size > 80*1048576)
+    throw new Error('o arquivo tem mais de 80 MB e o Supabase não está configurado. Configure o Supabase no Worker para enviar arquivos grandes.');
+  const j = await chamar('/upload', {
+    method:'POST', headers:{'Content-Type':'text/plain'}, body: blob
+  }, 600000);
+  return j.upload_url;
+}
+
 /**
  * Acompanha um trabalho de transcrição até o fim.
  * Falhas isoladas de rede não derrubam o processo: ele reconecta.
  */
 async function acompanhar(id){
-  processando = true;
-  travarTela();                 // impede a tela de apagar durante a espera
+  processando = true; travarTela();
   let dados=null, voltas=0, falhas=0, segundos=0;
 
-  while(voltas < 400){
+  while(voltas < 900){
     await pausa(3000); voltas++; segundos+=3;
     let j;
     try{
@@ -629,9 +792,8 @@ async function acompanhar(id){
       falhas = 0;
     }catch(e){
       falhas++;
-      if(falhas >= 6){
+      if(falhas >= 6)
         throw new Error(`perdi contato com o servidor ${falhas} vezes seguidas. A transcrição pode estar pronta assim mesmo — toque em "Retomar" para buscá-la.`);
-      }
       $('s2').innerHTML = `<span class="dot"></span> Rede oscilando, reconectando… (${falhas}ª tentativa)`;
       await pausa(2000);
       continue;
@@ -639,10 +801,10 @@ async function acompanhar(id){
 
     if(j.status==='completed'){ dados=j; break; }
     if(j.status==='error') throw new Error(j.erro || 'o serviço de transcrição retornou erro');
-    $('s2').innerHTML = `<span class="dot"></span> Transcrevendo e separando falantes · ${segundos}s`;
+    $('s2').innerHTML = `<span class="dot"></span> Transcrevendo e separando falantes · ${duracaoTexto(segundos)}`;
   }
 
-  if(!dados) throw new Error('tempo esgotado. O áudio pode ser longo demais para este protótipo.');
+  if(!dados) throw new Error('tempo esgotado. Toque em "Retomar" mais tarde para buscar o resultado.');
   passo('s2','done');
 
   passo('s3','doing');
@@ -652,26 +814,17 @@ async function acompanhar(id){
     aviso('transMsg','warn','O serviço não conseguiu separar as vozes — o texto veio como bloco único. Isso costuma acontecer com áudio de uma pessoa só ou com muita reverberação.');
   }
   if(!utterances.length) throw new Error('a transcrição voltou vazia. Verifique se o microfone captou som.');
+  if(dados.duracao) registro.duracao = Math.round(dados.duracao);
 
   nomes={};
   montarNomes(); renderTexto();
   passo('s3','done');
-  $('cardFalantes').classList.remove('hidden');
-  $('cardTexto').classList.remove('hidden');
-  $('cardResumo').classList.remove('hidden');
+  ['cardFalantes','cardTexto','cardResumo'].forEach(i=>$(i).classList.remove('hidden'));
   $('cardTexto').scrollIntoView({behavior:'smooth'});
 }
 
-/* ---- retomada de um trabalho interrompido ---- */
-function guardarId(id){
-  store.set('scriba_ultimo_id', id);
-  $('btnRetomar').classList.remove('hidden');
-}
-function verificarRetomada(){
-  if(store.get('scriba_ultimo_id')) $('btnRetomar').classList.remove('hidden');
-}
 $('btnRetomar').onclick = async () => {
-  const id = store.get('scriba_ultimo_id');
+  const id = registro.transcriptId || store.get('scriba_ultimo_id');
   if(!id){ aviso('transMsg','err','Não há transcrição anterior guardada.'); return; }
   $('transMsg').innerHTML='';
   $('steps').classList.remove('hidden');
@@ -679,7 +832,10 @@ $('btnRetomar').onclick = async () => {
   $('s2').className='doing'; $('s3').className='';
   $('btnRetomar').disabled=true;
   try{
+    registro.transcriptId = id;
     await acompanhar(id);
+    await salvarRegistro();
+    mostrarCartaoAudio();
   }catch(e){
     ['s2','s3'].forEach(i=>{ if($(i).className==='doing') $(i).className='fail'; });
     aviso('transMsg','err','Deu problema: '+e.message);
@@ -692,6 +848,9 @@ $('btnRetomar').onclick = async () => {
 function passo(id, cls){ $(id).className = cls; }
 const pausa = ms => new Promise(r=>setTimeout(r,ms));
 
+/* =====================================================================
+   FALANTES E TEXTO
+   ===================================================================== */
 function montarNomes(){
   const unicos = [...new Set(utterances.map(u=>u.speaker))];
   const box = $('namers'); box.innerHTML='';
@@ -702,6 +861,7 @@ function montarNomes(){
     const inp=document.createElement('input');
     inp.type='text'; inp.value=nomes[sp];
     inp.oninput = () => { nomes[sp]=inp.value || ('Falante '+sp); renderTexto(); };
+    inp.onblur  = () => { if(registro.id) salvarRegistro(); };
     div.appendChild(inp); box.appendChild(div);
   });
 }
@@ -727,6 +887,12 @@ function tempo(ms){
   const s=Math.floor((ms||0)/1000);
   return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
 }
+function duracaoTexto(s){
+  s = Math.round(s||0);
+  if(!s) return '—';
+  const h=Math.floor(s/3600), m=Math.floor(s%3600/60), g=s%60;
+  return h ? `${h}h${String(m).padStart(2,'0')}` : (m ? `${m}min${String(g).padStart(2,'0')}` : `${g}s`);
+}
 
 function textoPlano(){
   let out='', anterior=null;
@@ -737,7 +903,9 @@ function textoPlano(){
   return out.trim();
 }
 
-/* ================= resumo ================= */
+/* =====================================================================
+   RESUMO
+   ===================================================================== */
 $('btnResumo').onclick = async () => {
   if(!utterances.length) return;
   $('resumoMsg').innerHTML='<div class="msg ok">Gerando…</div>';
@@ -746,23 +914,22 @@ $('btnResumo').onclick = async () => {
     const j = await chamar('/resumo', {
       method:'POST', headers:{'Content-Type':'text/plain'},
       body: JSON.stringify({ texto: textoPlano(), tipo: $('tipo').value, notas: $('obs').value.trim() })
-    }, 180000);
+    }, 190000);
     resumoTexto = j.resumo;
     $('resumo').innerHTML = markdown(resumoTexto);
     $('resumo').classList.remove('hidden');
     $('exportRow').classList.remove('hidden');
     $('resumoMsg').innerHTML='';
+    await salvarRegistro();
   }catch(e){
     $('resumoMsg').innerHTML = `<div class="msg err">Deu problema: ${e.message}</div>`;
   }finally{ $('btnResumo').disabled=false; }
 };
 
 function markdown(t){
-  return t
+  return String(t)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/^### (.*)$/gm,'<h3>$1</h3>')
-    .replace(/^## (.*)$/gm,'<h3>$1</h3>')
-    .replace(/^# (.*)$/gm,'<h3>$1</h3>')
+    .replace(/^#{1,3} (.*)$/gm,'<h3>$1</h3>')
     .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
     .replace(/^[-*] (.*)$/gm,'<li>$1</li>')
     .replace(/(<li>[\s\S]*?<\/li>)(?!\s*<li>)/g,'<ul>$1</ul>')
@@ -770,53 +937,454 @@ function markdown(t){
     .replace(/<p>\s*<\/p>/g,'');
 }
 
-/* ================= exportação ================= */
-function documento(){
-  const d = new Date().toLocaleString('pt-BR');
-  const tipoTxt = $('tipo').selectedOptions[0].textContent;
-  let s = `SCRIBA — ${tipoTxt}\n${d}\n\n`;
-  if(resumoTexto) s += `${'='.repeat(50)}\nRESUMO\n${'='.repeat(50)}\n\n${resumoTexto}\n\n`;
-  if($('obs').value.trim()) s += `NOTAS\n${$('obs').value.trim()}\n\n`;
-  s += `${'='.repeat(50)}\nTRANSCRIÇÃO\n${'='.repeat(50)}\n${textoPlano()}\n`;
-  return s;
+/* =====================================================================
+   HISTÓRICO E ÁUDIO GUARDADO
+   ===================================================================== */
+async function salvarRegistro(){
+  if(!temSupabase) return;
+  try{
+    const dados = {
+      titulo: $('titulo').value.trim() || 'Sem título',
+      tipo: $('tipo').value,
+      duracao_seg: registro.duracao || null,
+      tamanho_bytes: blob ? blob.size : null,
+      origem: registro.origem,
+      audio_path: registro.audioPath,
+      transcript_id: registro.transcriptId,
+      falantes: nomes,
+      trechos: utterances,
+      texto: textoPlano(),
+      resumo: resumoTexto || null,
+      notas: $('obs').value.trim() || null
+    };
+    if(registro.id) dados.id = registro.id;
+
+    const j = await chamar('/historico/salvar', {
+      method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(dados)
+    }, 30000);
+    registro.id = j.item?.id || registro.id;
+    carregarHistorico();
+  }catch(e){
+    aviso('histMsg','warn','Não consegui salvar no histórico: '+e.message);
+  }
 }
-$('btnTxt').onclick = () => baixar(new Blob([documento()],{type:'text/plain;charset=utf-8'}), `scriba-${carimbo()}.txt`);
-$('btnMd').onclick = () => {
-  const md = `# SCRIBA — ${$('tipo').selectedOptions[0].textContent}\n\n*${new Date().toLocaleString('pt-BR')}*\n\n`
-    + (resumoTexto ? `## Resumo\n\n${resumoTexto}\n\n` : '')
-    + ($('obs').value.trim() ? `## Notas\n\n${$('obs').value.trim()}\n\n` : '')
-    + `## Transcrição\n\n${textoPlano()}\n`;
-  baixar(new Blob([md],{type:'text/markdown;charset=utf-8'}), `scriba-${carimbo()}.md`);
-};
-$('btnCopiar').onclick = async () => {
-  try{ await navigator.clipboard.writeText(documento()); $('btnCopiar').textContent='Copiado'; 
-    setTimeout(()=>$('btnCopiar').textContent='Copiar tudo',1600); }
-  catch(e){ alert('Não consegui copiar. Use o botão de baixar.'); }
+
+function mostrarCartaoAudio(){
+  if(!temSupabase || !registro.audioPath){ $('cardAudio').classList.add('hidden'); return; }
+  $('audioInfo').textContent =
+    `O arquivo de som está no depósito (${(blob.size/1048576).toFixed(1)} MB, ${duracaoTexto(registro.duracao)}). Você decide o que fazer com ele.`;
+  $('audioMsg').innerHTML='';
+  $('cardAudio').classList.remove('hidden');
+}
+
+$('btnManterAudio').onclick = () => {
+  aviso('audioMsg','ok','Áudio mantido. Ele continua acessível pelo histórico.');
 };
 
+$('btnApagarAudio').onclick = async () => {
+  if(!registro.audioPath) return;
+  if(!confirm('Apagar o arquivo de som? A transcrição e o resumo permanecem.')) return;
+  try{
+    await chamar('/audio/apagar', {
+      method:'POST', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({ path: registro.audioPath, id: registro.id })
+    }, 30000);
+    registro.audioPath = null;
+    aviso('audioMsg','ok','Áudio apagado. O texto continua guardado.');
+    carregarHistorico();
+  }catch(e){
+    aviso('audioMsg','err','Não consegui apagar: '+e.message);
+  }
+};
+
+$('btnBuscar').onclick = () => carregarHistorico();
+$('busca').addEventListener('keydown', e => { if(e.key==='Enter') carregarHistorico(); });
+
+async function carregarHistorico(){
+  if(!temSupabase) return;
+  try{
+    const termo = $('busca').value.trim();
+    const j = await chamar('/historico?limite=40'+(termo?'&busca='+encodeURIComponent(termo):''), {}, 25000);
+    desenharHistorico(j.itens || []);
+    $('histMsg').innerHTML='';
+  }catch(e){
+    aviso('histMsg','err','Não consegui carregar o histórico: '+e.message);
+  }
+}
+
+function desenharHistorico(itens){
+  const box = $('lista'); box.innerHTML='';
+  if(!itens.length){
+    box.innerHTML = '<div class="hint">Nada guardado ainda.</div>';
+    return;
+  }
+  const rotulos = {reuniao:'Reunião', aula:'Aula', sermao:'Pregação', entrevista:'Entrevista', livre:'Livre'};
+  itens.forEach(it=>{
+    const d = new Date(it.criado_em);
+    const div = document.createElement('div'); div.className='item';
+    const meta = [
+      d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),
+      rotulos[it.tipo] || it.tipo,
+      duracaoTexto(it.duracao_seg),
+      it.audio_path ? 'com áudio' : 'sem áudio'
+    ].join(' · ');
+
+    const t = document.createElement('div'); t.className='t'; t.textContent = it.titulo || 'Sem título';
+    const m = document.createElement('div'); m.className='m'; m.textContent = meta;
+    const acoes = document.createElement('div'); acoes.className='acoes';
+
+    const abrir = document.createElement('button');
+    abrir.className='small ghost'; abrir.textContent='Abrir';
+    abrir.onclick = ev => { ev.stopPropagation(); abrirRegistro(it.id); };
+
+    const apagar = document.createElement('button');
+    apagar.className='small perigo'; apagar.textContent='Apagar';
+    apagar.onclick = async ev => {
+      ev.stopPropagation();
+      if(!confirm('Apagar este registro e o áudio dele?')) return;
+      try{
+        await chamar('/historico/apagar', {
+          method:'POST', headers:{'Content-Type':'text/plain'},
+          body: JSON.stringify({ id: it.id, path: it.audio_path })
+        }, 25000);
+        if(registro.id===it.id) registro.id=null;
+        carregarHistorico();
+      }catch(e){ aviso('histMsg','err','Não consegui apagar: '+e.message); }
+    };
+
+    acoes.appendChild(abrir); acoes.appendChild(apagar);
+    div.appendChild(t); div.appendChild(m); div.appendChild(acoes);
+    div.onclick = () => abrirRegistro(it.id);
+    box.appendChild(div);
+  });
+}
+
+async function abrirRegistro(id){
+  try{
+    const j = await chamar('/historico/item?id='+encodeURIComponent(id), {}, 25000);
+    const it = j.item;
+    utterances = it.trechos || [];
+    nomes = it.falantes || {};
+    resumoTexto = it.resumo || '';
+    registro = {
+      id: it.id, transcriptId: it.transcript_id,
+      audioPath: it.audio_path, duracao: it.duracao_seg || 0,
+      origem: it.origem || 'gravado'
+    };
+    $('titulo').value = it.titulo || '';
+    $('tipo').value = it.tipo || 'livre';
+    $('obs').value = it.notas || '';
+
+    montarNomes(); renderTexto();
+    ['cardFalantes','cardTexto','cardResumo'].forEach(i=>$(i).classList.remove('hidden'));
+    if(resumoTexto){
+      $('resumo').innerHTML = markdown(resumoTexto);
+      $('resumo').classList.remove('hidden');
+      $('exportRow').classList.remove('hidden');
+    }else{
+      $('resumo').classList.add('hidden');
+      $('exportRow').classList.remove('hidden');
+    }
+    $('cardAudio').classList.toggle('hidden', !registro.audioPath);
+    if(registro.audioPath){
+      $('audioInfo').textContent = `Este registro ainda tem o arquivo de som guardado (${duracaoTexto(registro.duracao)}).`;
+      $('audioMsg').innerHTML='';
+    }
+    $('cardTexto').scrollIntoView({behavior:'smooth'});
+  }catch(e){
+    aviso('histMsg','err','Não consegui abrir: '+e.message);
+  }
+}
+
+/* =====================================================================
+   EXPORTAÇÃO
+   ===================================================================== */
+function tipoTexto(){ return $('tipo').selectedOptions[0].textContent; }
+function tituloTexto(){ return $('titulo').value.trim() || 'Sem título'; }
+const soResumo = () => $('cbSoResumo').checked;
+
+function documento(){
+  let s = `SCRIBA — ${tipoTexto()}\n${tituloTexto()}\n${new Date().toLocaleString('pt-BR')}\n\n`;
+  if(resumoTexto) s += `${'='.repeat(50)}\nRESUMO\n${'='.repeat(50)}\n\n${resumoTexto}\n\n`;
+  if($('obs').value.trim()) s += `NOTAS\n${$('obs').value.trim()}\n\n`;
+  if(!soResumo()) s += `${'='.repeat(50)}\nTRANSCRIÇÃO\n${'='.repeat(50)}\n${textoPlano()}\n`;
+  return s;
+}
+
+$('btnTxt').onclick = () =>
+  baixar(new Blob([documento()],{type:'text/plain;charset=utf-8'}), `${nomeSaida()}.txt`);
+
+$('btnMd').onclick = () => {
+  let md = `# ${tituloTexto()}\n\n*${tipoTexto()} · ${new Date().toLocaleString('pt-BR')}*\n\n`;
+  if(resumoTexto) md += `## Resumo\n\n${resumoTexto}\n\n`;
+  if($('obs').value.trim()) md += `## Notas\n\n${$('obs').value.trim()}\n\n`;
+  if(!soResumo()) md += `## Transcrição\n\n${textoPlano()}\n`;
+  baixar(new Blob([md],{type:'text/markdown;charset=utf-8'}), `${nomeSaida()}.md`);
+};
+
+$('btnCopiar').onclick = async () => {
+  try{
+    await navigator.clipboard.writeText(documento());
+    $('btnCopiar').textContent='Copiado';
+    setTimeout(()=>$('btnCopiar').textContent='Copiar tudo',1600);
+  }catch(e){ alert('Não consegui copiar. Use o botão de baixar.'); }
+};
+
+$('btnDocx').onclick = () => {
+  try{
+    baixar(gerarDocx(), `${nomeSaida()}.docx`);
+  }catch(e){
+    aviso('resumoMsg','err','Não consegui montar o Word: '+e.message);
+  }
+};
+
+function nomeSaida(){
+  const base = tituloTexto().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,50) || 'scriba';
+  return `${base}-${carimbo()}`;
+}
+
+/* ---------------------------------------------------------------------
+   GERADOR DE .DOCX
+   Um .docx é um pacote ZIP com arquivos XML dentro. Aqui o ZIP é montado
+   à mão, sem compressão (método "armazenado"), que é o formato mais
+   simples e igualmente válido.
+   --------------------------------------------------------------------- */
+const TABELA_CRC = (() => {
+  const t = new Uint32Array(256);
+  for(let n=0;n<256;n++){
+    let c=n;
+    for(let k=0;k<8;k++) c = (c & 1) ? (0xEDB88320 ^ (c>>>1)) : (c>>>1);
+    t[n]=c>>>0;
+  }
+  return t;
+})();
+
+function crc32(u8){
+  let c = 0xFFFFFFFF;
+  for(let i=0;i<u8.length;i++) c = TABELA_CRC[(c ^ u8[i]) & 0xFF] ^ (c>>>8);
+  return (c ^ 0xFFFFFFFF)>>>0;
+}
+
+function zipar(itens){
+  const cod = new TextEncoder();
+  const pedacos = [], centrais = [];
+  let deslocamento = 0;
+
+  itens.forEach(it => {
+    const nome = cod.encode(it.nome);
+    const crc  = crc32(it.dados);
+    const tam  = it.dados.length;
+
+    const local = new Uint8Array(30 + nome.length);
+    const v = new DataView(local.buffer);
+    v.setUint32(0, 0x04034b50, true);
+    v.setUint16(4, 20, true);
+    v.setUint16(6, 0x0800, true);   // nomes em UTF-8
+    v.setUint16(8, 0, true);        // armazenado, sem compressão
+    v.setUint16(10, 0, true);
+    v.setUint16(12, 0, true);
+    v.setUint32(14, crc, true);
+    v.setUint32(18, tam, true);
+    v.setUint32(22, tam, true);
+    v.setUint16(26, nome.length, true);
+    v.setUint16(28, 0, true);
+    local.set(nome, 30);
+    pedacos.push(local, it.dados);
+
+    const central = new Uint8Array(46 + nome.length);
+    const w = new DataView(central.buffer);
+    w.setUint32(0, 0x02014b50, true);
+    w.setUint16(4, 20, true);
+    w.setUint16(6, 20, true);
+    w.setUint16(8, 0x0800, true);
+    w.setUint16(10, 0, true);
+    w.setUint16(12, 0, true);
+    w.setUint16(14, 0, true);
+    w.setUint32(16, crc, true);
+    w.setUint32(20, tam, true);
+    w.setUint32(24, tam, true);
+    w.setUint16(28, nome.length, true);
+    w.setUint16(30, 0, true);
+    w.setUint16(32, 0, true);
+    w.setUint16(34, 0, true);
+    w.setUint16(36, 0, true);
+    w.setUint32(38, 0, true);
+    w.setUint32(42, deslocamento, true);
+    central.set(nome, 46);
+    centrais.push(central);
+
+    deslocamento += local.length + tam;
+  });
+
+  const tamCentral = centrais.reduce((a,c)=>a+c.length, 0);
+  const fim = new Uint8Array(22);
+  const f = new DataView(fim.buffer);
+  f.setUint32(0, 0x06054b50, true);
+  f.setUint16(4, 0, true);
+  f.setUint16(6, 0, true);
+  f.setUint16(8, itens.length, true);
+  f.setUint16(10, itens.length, true);
+  f.setUint32(12, tamCentral, true);
+  f.setUint32(16, deslocamento, true);
+  f.setUint16(20, 0, true);
+
+  return new Blob([...pedacos, ...centrais, fim], {
+    type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  });
+}
+
+const xmlSeguro = t => String(t)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;').replace(/\x00-\x08/g,'');
+
+/** Converte trechos com **negrito** em sequências de texto do Word. */
+function trechosWord(texto, formato){
+  return String(texto).split(/(\*\*[^*]+\*\*)/g).filter(Boolean).map(p => {
+    const forte = /^\*\*[^*]+\*\*$/.test(p);
+    const limpo = forte ? p.slice(2,-2) : p;
+    return `<w:r><w:rPr>${formato}${forte?'<w:b/>':''}</w:rPr>`
+         + `<w:t xml:space="preserve">${xmlSeguro(limpo)}</w:t></w:r>`;
+  }).join('');
+}
+
+function paragrafo(texto, o){
+  o = o || {};
+  const formato = [
+    `<w:rFonts w:ascii="${o.fonte||'Georgia'}" w:hAnsi="${o.fonte||'Georgia'}"/>`,
+    `<w:sz w:val="${(o.tamanho||11)*2}"/><w:szCs w:val="${(o.tamanho||11)*2}"/>`,
+    o.negrito ? '<w:b/>' : '',
+    o.italico ? '<w:i/>' : '',
+    o.cor ? `<w:color w:val="${o.cor}"/>` : '',
+    o.espacado ? '<w:spacing w:val="60"/>' : ''
+  ].join('');
+
+  const paragrafoProps = [
+    `<w:spacing w:before="${o.antes ?? 120}" w:after="${o.depois ?? 120}" w:line="276" w:lineRule="auto"/>`,
+    o.centro ? '<w:jc w:val="center"/>' : '',
+    o.recuo ? `<w:ind w:left="${o.recuo}"/>` : '',
+    (o.nivel != null) ? `<w:outlineLvl w:val="${o.nivel}"/>` : '',
+    o.linha ? '<w:pBdr><w:bottom w:val="single" w:sz="6" w:space="6" w:color="C9A227"/></w:pBdr>' : ''
+  ].join('');
+
+  return `<w:p><w:pPr>${paragrafoProps}<w:rPr>${formato}</w:rPr></w:pPr>${trechosWord(texto, formato)}</w:p>`;
+}
+
+function gerarDocx(){
+  const corpo = [];
+
+  corpo.push(paragrafo(tituloTexto(), {
+    fonte:'Cinzel', tamanho:20, negrito:true, cor:'0F1B33',
+    centro:true, espacado:true, antes:0, depois:60
+  }));
+  corpo.push(paragrafo(`${tipoTexto()} · ${new Date().toLocaleString('pt-BR')}`, {
+    tamanho:9, italico:true, cor:'6B7A94', centro:true, antes:0, depois:280, linha:true
+  }));
+
+  const secao = t => paragrafo(t, {
+    fonte:'Cinzel', tamanho:13, negrito:true, cor:'C9A227',
+    nivel:0, antes:320, depois:140
+  });
+  const subsecao = t => paragrafo(t, {
+    fonte:'Cinzel', tamanho:11, negrito:true, cor:'0F1B33',
+    nivel:1, antes:240, depois:100
+  });
+
+  if(resumoTexto){
+    corpo.push(secao('Resumo'));
+    resumoTexto.split('\n').forEach(linha => {
+      const l = linha.trim();
+      if(!l) return;
+      if(/^#{1,3}\s+/.test(l))      corpo.push(subsecao(l.replace(/^#{1,3}\s+/,'')));
+      else if(/^[-*]\s+/.test(l))   corpo.push(paragrafo('•  ' + l.replace(/^[-*]\s+/,''), {recuo:360, antes:40, depois:40}));
+      else if(/^\d+[.)]\s+/.test(l))corpo.push(paragrafo(l, {recuo:360, antes:40, depois:40}));
+      else                          corpo.push(paragrafo(l));
+    });
+  }
+
+  const notas = $('obs').value.trim();
+  if(notas){
+    corpo.push(secao('Notas'));
+    notas.split('\n').forEach(l => { if(l.trim()) corpo.push(paragrafo(l.trim())); });
+  }
+
+  if(!soResumo() && utterances.length){
+    corpo.push(secao('Transcrição'));
+    let anterior = null;
+    utterances.forEach(u => {
+      if(u.speaker !== anterior){
+        corpo.push(paragrafo(`${(nomes[u.speaker]||u.speaker).toUpperCase()}   ${tempo(u.start)}`, {
+          fonte:'Cinzel', tamanho:9, negrito:true, cor:'C9A227', espacado:true, antes:200, depois:40
+        }));
+        anterior = u.speaker;
+      }
+      corpo.push(paragrafo(u.text, {antes:0, depois:80}));
+    });
+  }
+
+  const documentoXml =
+`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+<w:body>${corpo.join('')}
+<w:sectPr>
+<w:pgSz w:w="11906" w:h="16838"/>
+<w:pgMar w:top="1418" w:right="1418" w:bottom="1418" w:left="1418" w:header="709" w:footer="709" w:gutter="0"/>
+</w:sectPr>
+</w:body></w:document>`;
+
+  const tipos =
+`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`;
+
+  const relacoes =
+`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`;
+
+  const cod = new TextEncoder();
+  return zipar([
+    { nome:'[Content_Types].xml', dados: cod.encode(tipos) },
+    { nome:'_rels/.rels',         dados: cod.encode(relacoes) },
+    { nome:'word/document.xml',   dados: cod.encode(documentoXml) }
+  ]);
+}
+
+/* =====================================================================
+   UTILIDADES
+   ===================================================================== */
 function baixar(b, nome){
   const a=document.createElement('a');
   a.href=URL.createObjectURL(b); a.download=nome;
   document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  setTimeout(()=>URL.revokeObjectURL(a.href), 6000);
 }
 function carimbo(){
   const d=new Date(), p=n=>String(n).padStart(2,'0');
   return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`;
 }
-
-/* ================= utilidades ================= */
 function aviso(alvo, tipo, txt){ $(alvo).innerHTML = `<div class="msg ${tipo}">${txt}</div>`; }
+
 function limparResultados(){
   utterances=[]; nomes={}; resumoTexto='';
-  ['cardFalantes','cardTexto','cardResumo','exportRow'].forEach(i=>$(i).classList.add('hidden'));
-  $('resumo').classList.add('hidden'); $('steps').classList.add('hidden');
-  $('transMsg').innerHTML=''; $('resumoMsg').innerHTML='';
+  registro = { id:null, transcriptId:null, audioPath:null, duracao:0, origem:'gravado' };
+  ['cardFalantes','cardTexto','cardResumo','exportRow','cardAudio','steps'].forEach(i=>$(i).classList.add('hidden'));
+  $('resumo').classList.add('hidden');
+  $('barraEnvio').classList.add('hidden');
+  $('transMsg').innerHTML=''; $('resumoMsg').innerHTML=''; $('audioMsg').innerHTML='';
+  $('obs').value='';
 }
 
-verificarRetomada();
+/* =====================================================================
+   INÍCIO
+   ===================================================================== */
+if(store.get('scriba_ultimo_id')) $('btnRetomar').classList.remove('hidden');
+if(workerUrl()) verificarWorker(true);
 
-/* aviso se a página não estiver em HTTPS */
 if(location.protocol!=='https:' && location.hostname!=='localhost' && location.protocol!=='file:'){
   aviso('transMsg','warn','O microfone só funciona em HTTPS. Publique no GitHub Pages para testar de verdade.');
 }
