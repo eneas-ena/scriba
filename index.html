@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0F1B33">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>SCRIBA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0F1B33;
+    --navy-2:#16233F;
+    --navy-3:#1E2E4F;
+    --gold:#C9A227;
+    --gold-soft:#E0C05A;
+    --linen:#F2EEE4;
+    --muted:#8E9AB2;
+    --ok:#5FB37A;
+    --warn:#D98C3F;
+    --err:#C4585A;
+    --ui:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{
+    background:var(--navy);
+    color:var(--linen);
+    font-family:'Cormorant Garamond',Georgia,serif;
+    font-size:18px;
+    line-height:1.6;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    min-height:100vh;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:24px 18px 80px}
+
+  header{text-align:center;padding:18px 0 26px;border-bottom:1px solid rgba(201,162,39,.28);margin-bottom:26px}
+  header h1{font-family:'Cinzel',serif;font-size:2.1rem;letter-spacing:.22em;color:var(--gold);font-weight:600}
+  header p{font-size:.95rem;color:var(--muted);font-family:var(--ui);letter-spacing:.04em;margin-top:6px}
+
+  .card{
+    background:var(--navy-2);
+    border:1px solid rgba(201,162,39,.18);
+    border-radius:12px;
+    padding:20px;
+    margin-bottom:18px;
+  }
+  .card h2{
+    font-family:'Cinzel',serif;font-size:.85rem;letter-spacing:.18em;
+    color:var(--gold);text-transform:uppercase;font-weight:600;
+    margin-bottom:16px;display:flex;align-items:center;gap:10px;
+  }
+  .card h2::after{content:'';flex:1;height:1px;background:rgba(201,162,39,.2)}
+
+  label{display:block;font-family:var(--ui);font-size:.78rem;letter-spacing:.06em;
+    color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+  input[type=text],input[type=number],select,textarea{
+    width:100%;background:var(--navy);color:var(--linen);
+    border:1px solid rgba(201,162,39,.25);border-radius:8px;
+    padding:11px 12px;font-family:var(--ui);font-size:.92rem;
+  }
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:transparent}
+  .field{margin-bottom:15px}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .row>*{flex:1;min-width:140px}
+
+  .check{display:flex;align-items:center;gap:9px;font-family:var(--ui);
+    font-size:.85rem;color:var(--linen);text-transform:none;letter-spacing:0;margin-bottom:9px;cursor:pointer}
+  .check input{width:17px;height:17px;accent-color:var(--gold);flex:none}
+  .hint{font-family:var(--ui);font-size:.76rem;color:var(--muted);line-height:1.5;margin-top:6px}
+
+  button{
+    background:var(--gold);color:var(--navy);border:none;border-radius:8px;
+    padding:12px 20px;font-family:'Cinzel',serif;font-weight:600;
+    font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+    transition:filter .15s;
+  }
+  button:hover:not(:disabled){filter:brightness(1.12)}
+  button:disabled{opacity:.35;cursor:not-allowed}
+  button.ghost{background:transparent;color:var(--gold);border:1px solid rgba(201,162,39,.45)}
+  button.small{padding:8px 13px;font-size:.72rem}
+
+  /* Medidor de nível */
+  .meter{height:14px;background:var(--navy);border-radius:7px;overflow:hidden;
+    border:1px solid rgba(201,162,39,.2);position:relative;margin:4px 0 2px}
+  .meter-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--ok),var(--gold) 72%,var(--err) 92%);
+    transition:width .06s linear}
+  .meter-scale{display:flex;justify-content:space-between;font-family:var(--ui);
+    font-size:.65rem;color:var(--muted);letter-spacing:.05em}
+
+  /* Gravação */
+  .rec-area{text-align:center;padding:8px 0}
+  .timer{font-family:var(--ui);font-size:2.6rem;font-weight:200;letter-spacing:.06em;
+    font-variant-numeric:tabular-nums;color:var(--linen)}
+  .rec-meta{font-family:var(--ui);font-size:.76rem;color:var(--muted);letter-spacing:.05em;margin-top:2px}
+  .rec-btn{
+    width:86px;height:86px;border-radius:50%;margin:18px auto 12px;display:block;
+    background:var(--err);border:3px solid rgba(255,255,255,.14);
+    font-size:0;padding:0;position:relative;
+  }
+  .rec-btn::after{content:'';position:absolute;inset:0;margin:auto;
+    width:26px;height:26px;background:#fff;border-radius:50%;transition:.2s}
+  .rec-btn.on::after{width:24px;height:24px;border-radius:4px}
+  .rec-btn.on{animation:pulse 1.7s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(196,88,90,.55)}50%{box-shadow:0 0 0 16px rgba(196,88,90,0)}}
+  @media (prefers-reduced-motion:reduce){.rec-btn.on{animation:none}}
+
+  .badge{display:inline-block;font-family:var(--ui);font-size:.7rem;letter-spacing:.1em;
+    text-transform:uppercase;padding:3px 9px;border-radius:20px;
+    background:rgba(201,162,39,.14);color:var(--gold);border:1px solid rgba(201,162,39,.3)}
+
+  /* Etapas */
+  .steps{list-style:none;font-family:var(--ui);font-size:.86rem}
+  .steps li{padding:8px 0;display:flex;align-items:center;gap:11px;color:var(--muted)}
+  .steps li .dot{width:9px;height:9px;border-radius:50%;background:var(--navy-3);flex:none}
+  .steps li.doing{color:var(--linen)}
+  .steps li.doing .dot{background:var(--gold);animation:blink 1.1s infinite}
+  .steps li.done{color:var(--ok)}
+  .steps li.done .dot{background:var(--ok)}
+  .steps li.fail{color:var(--err)}
+  .steps li.fail .dot{background:var(--err)}
+  @keyframes blink{50%{opacity:.3}}
+
+  /* Transcrição */
+  .turn{padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+  .turn:last-child{border:none}
+  .turn .who{font-family:'Cinzel',serif;font-size:.74rem;letter-spacing:.13em;
+    color:var(--gold);text-transform:uppercase;display:block;margin-bottom:3px}
+  .turn .when{font-family:var(--ui);font-size:.68rem;color:var(--muted);margin-left:8px;letter-spacing:.04em}
+  .turn p{font-size:1.02rem;line-height:1.65}
+  .scroll{max-height:420px;overflow-y:auto;padding-right:8px}
+
+  .namer{display:flex;gap:9px;align-items:center;margin-bottom:9px}
+  .namer .tag{font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.1em;
+    color:var(--gold);width:88px;flex:none}
+
+  .out{background:var(--navy);border-radius:8px;padding:16px;
+    border:1px solid rgba(201,162,39,.15);font-size:1.02rem}
+  .out h3{font-family:'Cinzel',serif;color:var(--gold);font-size:.9rem;
+    letter-spacing:.1em;margin:16px 0 7px;text-transform:uppercase}
+  .out h3:first-child{margin-top:0}
+  .out ul{margin:6px 0 6px 20px}
+  .out li{margin-bottom:4px}
+  .out p{margin-bottom:9px}
+  .out strong{color:var(--gold-soft)}
+
+  .msg{font-family:var(--ui);font-size:.84rem;padding:11px 13px;border-radius:8px;margin-top:12px;line-height:1.5}
+  .msg.err{background:rgba(196,88,90,.13);border:1px solid rgba(196,88,90,.4);color:#F0B4B5}
+  .msg.ok{background:rgba(95,179,122,.12);border:1px solid rgba(95,179,122,.35);color:#A8DCB9}
+  .msg.warn{background:rgba(217,140,63,.12);border:1px solid rgba(217,140,63,.35);color:#F0C79A}
+
+  .hidden{display:none!important}
+  .center{text-align:center}
+  .mt{margin-top:14px}
+  footer{text-align:center;font-family:var(--ui);font-size:.72rem;color:var(--muted);
+    letter-spacing:.08em;padding:28px 0 10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>SCRIBA</h1>
+  <p>Gravação · Transcrição com falantes · Resumo</p>
+</header>
+
+<!-- ============ 1. CONFIGURAÇÃO ============ -->
+<section class="card">
+  <h2>Configuração</h2>
+  <div class="field">
+    <label for="worker">Endereço do Worker</label>
+    <input type="text" id="worker" placeholder="https://scriba-ia.eneaspr.workers.dev">
+    <div class="hint">Cole aqui a URL do seu Worker no Cloudflare. Fica salvo neste aparelho.</div>
+  </div>
+  <button class="small" id="btnSalvar">Salvar</button>
+  <span id="cfgMsg" class="badge hidden">Salvo</span>
+</section>
+
+<!-- ============ 2. MICROFONE ============ -->
+<section class="card">
+  <h2>Microfone</h2>
+  <div class="field">
+    <label for="mic">Entrada de áudio</label>
+    <select id="mic"><option>Toque em "Liberar microfone"</option></select>
+    <div class="hint" id="micHint">O navegador só mostra os nomes dos microfones depois que você libera o acesso.</div>
+  </div>
+
+  <div class="row" style="margin-bottom:14px">
+    <button class="small ghost" id="btnPermitir">Liberar microfone</button>
+    <button class="small ghost" id="btnTestar">Testar nível</button>
+  </div>
+
+  <div id="meterBox" class="hidden">
+    <label>Nível de entrada</label>
+    <div class="meter"><div class="meter-fill" id="meterFill"></div></div>
+    <div class="meter-scale"><span>silêncio</span><span>ideal</span><span>estourando</span></div>
+    <div class="hint" id="meterHint">Fale de onde você vai gravar. O ideal é a barra dançar na faixa dourada.</div>
+  </div>
+
+  <div style="margin-top:16px">
+    <label>Processamento do áudio</label>
+    <label class="check"><input type="checkbox" id="cbNoise"> Redução de ruído</label>
+    <label class="check"><input type="checkbox" id="cbEcho"> Cancelamento de eco</label>
+    <label class="check"><input type="checkbox" id="cbAgc" checked> Ganho automático</label>
+    <div class="hint">Com microfone externo, deixe redução de ruído e eco <strong>desligados</strong> — eles cortam vozes distantes achando que são ruído. Mantenha o ganho automático ligado para equilibrar quem fala mais longe.</div>
+  </div>
+</section>
+
+<!-- ============ 3. GRAVAÇÃO ============ -->
+<section class="card">
+  <h2>Gravação</h2>
+  <div class="rec-area">
+    <div class="timer" id="timer">00:00:00</div>
+    <div class="rec-meta" id="recMeta">pronto para gravar</div>
+    <button class="rec-btn" id="btnRec" aria-label="Iniciar gravação"></button>
+    <div class="row" style="justify-content:center">
+      <button class="small ghost hidden" id="btnPause">Pausar</button>
+      <button class="small ghost hidden" id="btnDescartar">Descartar</button>
+    </div>
+  </div>
+
+  <div id="playBox" class="hidden mt">
+    <audio id="player" controls style="width:100%"></audio>
+    <div class="hint" id="fileInfo"></div>
+  </div>
+</section>
+
+<!-- ============ 4. TRANSCRIÇÃO ============ -->
+<section class="card" id="cardTrans">
+  <h2>Transcrição</h2>
+  <div class="row">
+    <div class="field">
+      <label for="nFal">Quantas pessoas falam</label>
+      <input type="number" id="nFal" min="1" max="10" placeholder="deixe vazio p/ detectar">
+    </div>
+    <div class="field">
+      <label for="tipo">Tipo de encontro</label>
+      <select id="tipo">
+        <option value="reuniao">Reunião de liderança</option>
+        <option value="aula">Aula / curso teológico</option>
+        <option value="sermao">Ideia de pregação</option>
+        <option value="entrevista">Entrevista / conversa</option>
+        <option value="livre">Livre</option>
+      </select>
+    </div>
+  </div>
+
+  <button id="btnTranscrever" disabled>Transcrever</button>
+  <button class="ghost hidden" id="btnBaixarAudio">Baixar áudio</button>
+
+  <ul class="steps hidden" id="steps">
+    <li id="s1"><span class="dot"></span> Enviando áudio</li>
+    <li id="s2"><span class="dot"></span> Transcrevendo e separando falantes</li>
+    <li id="s3"><span class="dot"></span> Montando o texto</li>
+  </ul>
+  <div id="transMsg"></div>
+</section>
+
+<!-- ============ 5. FALANTES ============ -->
+<section class="card hidden" id="cardFalantes">
+  <h2>Quem é quem</h2>
+  <div class="hint" style="margin-bottom:14px">O serviço separa as vozes, mas não sabe os nomes. Troque abaixo e o texto se atualiza.</div>
+  <div id="namers"></div>
+</section>
+
+<!-- ============ 6. TEXTO ============ -->
+<section class="card hidden" id="cardTexto">
+  <h2>Texto</h2>
+  <div class="scroll" id="texto"></div>
+</section>
+
+<!-- ============ 7. RESUMO ============ -->
+<section class="card hidden" id="cardResumo">
+  <h2>Resumo estruturado</h2>
+  <div class="field">
+    <label for="obs">Suas notas e correções (opcional)</label>
+    <textarea id="obs" rows="3" placeholder="Ex.: o nome correto do projeto é Vida Plena; o valor citado foi 3.500, não 3.000."></textarea>
+    <div class="hint">Tudo que você escrever aqui entra como contexto e o resumo respeita suas correções.</div>
+  </div>
+  <button id="btnResumo">Gerar resumo</button>
+  <div id="resumoMsg"></div>
+  <div class="out hidden mt" id="resumo"></div>
+  <div class="row mt hidden" id="exportRow">
+    <button class="small ghost" id="btnTxt">Baixar .txt</button>
+    <button class="small ghost" id="btnMd">Baixar .md</button>
+    <button class="small ghost" id="btnCopiar">Copiar tudo</button>
+  </div>
+</section>
+
+<footer>SCRIBA · protótipo v0.1</footer>
+</div>
+
+<script>
+/* ================= armazenamento tolerante ================= */
+const mem = {};
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return mem[k] ?? null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){ mem[k]=v; } }
+};
+const $ = id => document.getElementById(id);
+
+/* ================= estado ================= */
+let stream=null, rec=null, chunks=[], blob=null;
+let t0=0, acc=0, tick=null, gravando=false, pausado=false;
+let audioCtx=null, analyser=null, rafId=null, wakeLock=null;
+let utterances=[], nomes={}, resumoTexto='';
+
+/* ================= configuração ================= */
+$('worker').value = store.get('scriba_worker') || '';
+$('btnSalvar').onclick = () => {
+  store.set('scriba_worker', $('worker').value.trim().replace(/\/+$/,''));
+  $('cfgMsg').classList.remove('hidden');
+  setTimeout(()=>$('cfgMsg').classList.add('hidden'), 1800);
+};
+const workerUrl = () => ($('worker').value.trim().replace(/\/+$/,''));
+
+/* ================= microfone ================= */
+$('btnPermitir').onclick = async () => {
+  try{
+    const s = await navigator.mediaDevices.getUserMedia({audio:true});
+    s.getTracks().forEach(t=>t.stop());
+    await listarMics();
+    $('micHint').textContent = 'Microfone liberado. Se você conectar um externo agora, toque de novo para atualizar a lista.';
+  }catch(e){
+    aviso('transMsg','err','Não consegui acessar o microfone: '+e.message+'. Verifique as permissões do navegador.');
+  }
+};
+
+async function listarMics(){
+  const devs = await navigator.mediaDevices.enumerateDevices();
+  const ins = devs.filter(d=>d.kind==='audioinput');
+  const sel = $('mic'); sel.innerHTML='';
+  const salvo = store.get('scriba_mic');
+  ins.forEach((d,i)=>{
+    const o=document.createElement('option');
+    o.value=d.deviceId;
+    o.textContent=d.label || ('Entrada '+(i+1));
+    if(d.deviceId===salvo) o.selected=true;
+    sel.appendChild(o);
+  });
+  if(!ins.length){ sel.innerHTML='<option>Nenhum microfone encontrado</option>'; }
+}
+$('mic').onchange = () => store.set('scriba_mic', $('mic').value);
+navigator.mediaDevices.addEventListener?.('devicechange', () => { if($('mic').options.length>1) listarMics(); });
+
+function constraints(){
+  const id = $('mic').value;
+  return { audio: {
+    deviceId: id ? {exact:id} : undefined,
+    echoCancellation: $('cbEcho').checked,
+    noiseSuppression: $('cbNoise').checked,
+    autoGainControl: $('cbAgc').checked,
+    channelCount: 1
+  }};
+}
+
+/* ================= medidor de nível ================= */
+$('btnTestar').onclick = async () => {
+  if(rafId){ pararMedidor(); $('btnTestar').textContent='Testar nível'; return; }
+  try{
+    const s = await navigator.mediaDevices.getUserMedia(constraints());
+    iniciarMedidor(s, true);
+    $('btnTestar').textContent='Parar teste';
+  }catch(e){ aviso('transMsg','err','Erro ao abrir o microfone: '+e.message); }
+};
+
+function iniciarMedidor(s, proprio){
+  $('meterBox').classList.remove('hidden');
+  audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  const src = audioCtx.createMediaStreamSource(s);
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 1024;
+  src.connect(analyser);
+  const buf = new Float32Array(analyser.fftSize);
+  let pico = 0;
+  const loop = () => {
+    analyser.getFloatTimeDomainData(buf);
+    let soma=0, max=0;
+    for(let i=0;i<buf.length;i++){ soma+=buf[i]*buf[i]; max=Math.max(max,Math.abs(buf[i])); }
+    const rms = Math.sqrt(soma/buf.length);
+    const db = 20*Math.log10(rms||1e-8);
+    const pct = Math.max(0, Math.min(100, (db+60)/60*100));
+    $('meterFill').style.width = pct.toFixed(1)+'%';
+    pico = Math.max(pico, max);
+    if(max > 0.985) $('meterHint').innerHTML = '<strong style="color:#C4585A">Estourando.</strong> Afaste o microfone ou desligue o ganho automático.';
+    rafId = requestAnimationFrame(loop);
+  };
+  loop();
+  if(proprio) window._testeStream = s;
+}
+function pararMedidor(){
+  cancelAnimationFrame(rafId); rafId=null;
+  if(window._testeStream){ window._testeStream.getTracks().forEach(t=>t.stop()); window._testeStream=null; }
+  if(audioCtx){ audioCtx.close().catch(()=>{}); audioCtx=null; }
+  $('meterFill').style.width='0%';
+}
+
+/* ================= formato de gravação ================= */
+function mime(){
+  const opts=['audio/webm;codecs=opus','audio/webm','audio/mp4;codecs=mp4a.40.2','audio/mp4','audio/aac'];
+  for(const m of opts){ if(window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m; }
+  return '';
+}
+function ext(m){ return m.includes('webm') ? 'webm' : 'm4a'; }
+
+/* ================= gravação ================= */
+$('btnRec').onclick = () => gravando ? parar() : iniciar();
+
+async function iniciar(){
+  try{
+    limparResultados();
+    stream = await navigator.mediaDevices.getUserMedia(constraints());
+    const m = mime();
+    rec = new MediaRecorder(stream, m ? {mimeType:m, audioBitsPerSecond:64000} : {});
+    chunks=[];
+    rec.ondataavailable = e => { if(e.data.size) chunks.push(e.data); };
+    rec.onstop = finalizar;
+    rec.start(1000);
+
+    gravando=true; pausado=false; acc=0; t0=Date.now();
+    tick = setInterval(atualizarTimer, 250);
+    $('btnRec').classList.add('on');
+    $('btnPause').classList.remove('hidden');
+    $('btnDescartar').classList.remove('hidden');
+    $('playBox').classList.add('hidden');
+    $('recMeta').textContent = 'gravando · '+(m||'formato padrão');
+    pararMedidor(); iniciarMedidor(stream, false);
+    travarTela();
+  }catch(e){
+    aviso('transMsg','err','Não foi possível iniciar: '+e.message);
+  }
+}
+
+$('btnPause').onclick = () => {
+  if(!rec) return;
+  if(pausado){ rec.resume(); t0=Date.now(); tick=setInterval(atualizarTimer,250); pausado=false;
+    $('btnPause').textContent='Pausar'; $('recMeta').textContent='gravando'; $('btnRec').classList.add('on'); }
+  else{ rec.pause(); acc+=Date.now()-t0; clearInterval(tick); pausado=true;
+    $('btnPause').textContent='Continuar'; $('recMeta').textContent='pausado'; $('btnRec').classList.remove('on'); }
+};
+
+$('btnDescartar').onclick = () => {
+  if(!confirm('Descartar esta gravação?')) return;
+  if(rec && rec.state!=='inactive'){ rec.onstop=null; rec.stop(); }
+  encerrarCaptura(); chunks=[]; blob=null;
+  $('timer').textContent='00:00:00'; $('recMeta').textContent='pronto para gravar';
+  $('playBox').classList.add('hidden'); $('btnTranscrever').disabled=true;
+  $('btnBaixarAudio').classList.add('hidden');
+};
+
+function parar(){ if(rec && rec.state!=='inactive') rec.stop(); }
+
+function finalizar(){
+  blob = new Blob(chunks, {type: rec.mimeType || 'audio/webm'});
+  encerrarCaptura();
+  $('player').src = URL.createObjectURL(blob);
+  $('playBox').classList.remove('hidden');
+  $('fileInfo').textContent = `${(blob.size/1048576).toFixed(1)} MB · ${$('timer').textContent} · ${blob.type||'áudio'}`;
+  $('recMeta').textContent = 'gravação concluída';
+  $('btnTranscrever').disabled = false;
+  $('btnBaixarAudio').classList.remove('hidden');
+}
+
+function encerrarCaptura(){
+  gravando=false; pausado=false;
+  clearInterval(tick);
+  $('btnRec').classList.remove('on');
+  $('btnPause').classList.add('hidden'); $('btnPause').textContent='Pausar';
+  $('btnDescartar').classList.add('hidden');
+  pararMedidor();
+  if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+  soltarTela();
+}
+
+function atualizarTimer(){
+  const ms = acc + (Date.now()-t0);
+  const s = Math.floor(ms/1000);
+  const h=String(Math.floor(s/3600)).padStart(2,'0');
+  const m=String(Math.floor(s%3600/60)).padStart(2,'0');
+  const g=String(s%60).padStart(2,'0');
+  $('timer').textContent = `${h}:${m}:${g}`;
+}
+
+/* manter a tela acesa durante a gravação */
+async function travarTela(){
+  try{ if('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); }catch(e){}
+}
+function soltarTela(){ try{ wakeLock?.release(); wakeLock=null; }catch(e){} }
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState==='visible' && gravando) travarTela();
+});
+
+$('btnBaixarAudio').onclick = () => {
+  if(!blob) return;
+  baixar(blob, `scriba-${carimbo()}.${ext(blob.type)}`);
+};
+
+/* ================= transcrição ================= */
+$('btnTranscrever').onclick = async () => {
+  if(!blob) return;
+  if(!workerUrl()){ aviso('transMsg','err','Informe o endereço do Worker na primeira seção.'); return; }
+
+  $('transMsg').innerHTML='';
+  $('steps').classList.remove('hidden');
+  ['s1','s2','s3'].forEach(i=>$(i).className='');
+  $('btnTranscrever').disabled=true;
+
+  try{
+    // 1 — envio
+    passo('s1','doing');
+    const up = await fetch(workerUrl()+'/upload', {
+      method:'POST', headers:{'Content-Type':'application/octet-stream'}, body: blob
+    });
+    const upJson = await up.json();
+    if(!up.ok) throw new Error(upJson.erro || 'falha no envio');
+    passo('s1','done');
+
+    // 2 — transcrição
+    passo('s2','doing');
+    const n = parseInt($('nFal').value);
+    const st = await fetch(workerUrl()+'/transcrever', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ audio_url: upJson.upload_url, falantes: (n>0?n:null) })
+    });
+    const stJson = await st.json();
+    if(!st.ok) throw new Error(stJson.erro || 'falha ao iniciar a transcrição');
+
+    // 3 — espera
+    let dados=null, voltas=0;
+    while(voltas < 400){
+      await pausa(3000); voltas++;
+      const r = await fetch(workerUrl()+'/status?id='+encodeURIComponent(stJson.id));
+      const j = await r.json();
+      if(j.status==='completed'){ dados=j; break; }
+      if(j.status==='error') throw new Error(j.erro || 'o serviço retornou erro');
+      $('s2').innerHTML = `<span class="dot"></span> Transcrevendo e separando falantes · ${voltas*3}s`;
+    }
+    if(!dados) throw new Error('tempo esgotado. O áudio pode ser longo demais para este protótipo.');
+    passo('s2','done');
+
+    // 4 — montagem
+    passo('s3','doing');
+    utterances = dados.utterances || [];
+    if(!utterances.length && dados.texto){
+      utterances = [{speaker:'A', text:dados.texto, start:0, end:0}];
+      aviso('transMsg','warn','O serviço não conseguiu separar as vozes — o texto veio como bloco único. Isso costuma acontecer com áudio de uma pessoa só ou com muita reverberação.');
+    }
+    nomes={};
+    montarNomes(); renderTexto();
+    passo('s3','done');
+    $('cardFalantes').classList.remove('hidden');
+    $('cardTexto').classList.remove('hidden');
+    $('cardResumo').classList.remove('hidden');
+    $('cardTexto').scrollIntoView({behavior:'smooth'});
+  }catch(e){
+    ['s1','s2','s3'].forEach(i=>{ if($(i).className==='doing') $(i).className='fail'; });
+    aviso('transMsg','err','Deu problema: '+e.message);
+  }finally{
+    $('btnTranscrever').disabled=false;
+  }
+};
+
+function passo(id, cls){ $(id).className = cls; }
+const pausa = ms => new Promise(r=>setTimeout(r,ms));
+
+function montarNomes(){
+  const unicos = [...new Set(utterances.map(u=>u.speaker))];
+  const box = $('namers'); box.innerHTML='';
+  unicos.forEach(sp=>{
+    nomes[sp] = nomes[sp] || ('Falante '+sp);
+    const div=document.createElement('div'); div.className='namer';
+    div.innerHTML = `<span class="tag">Voz ${sp}</span>`;
+    const inp=document.createElement('input');
+    inp.type='text'; inp.value=nomes[sp];
+    inp.oninput = () => { nomes[sp]=inp.value || ('Falante '+sp); renderTexto(); };
+    div.appendChild(inp); box.appendChild(div);
+  });
+}
+
+function renderTexto(){
+  const box = $('texto'); box.innerHTML='';
+  let anterior=null;
+  utterances.forEach(u=>{
+    const div=document.createElement('div'); div.className='turn';
+    if(u.speaker!==anterior){
+      const w=document.createElement('span'); w.className='who';
+      w.textContent = nomes[u.speaker] || u.speaker;
+      const t=document.createElement('span'); t.className='when'; t.textContent = tempo(u.start);
+      w.appendChild(t); div.appendChild(w);
+      anterior=u.speaker;
+    }
+    const p=document.createElement('p'); p.textContent=u.text; div.appendChild(p);
+    box.appendChild(div);
+  });
+}
+
+function tempo(ms){
+  const s=Math.floor((ms||0)/1000);
+  return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+}
+
+function textoPlano(){
+  let out='', anterior=null;
+  utterances.forEach(u=>{
+    if(u.speaker!==anterior){ out += `\n\n${(nomes[u.speaker]||u.speaker).toUpperCase()} [${tempo(u.start)}]\n`; anterior=u.speaker; }
+    out += u.text+' ';
+  });
+  return out.trim();
+}
+
+/* ================= resumo ================= */
+$('btnResumo').onclick = async () => {
+  if(!utterances.length) return;
+  $('resumoMsg').innerHTML='<div class="msg ok">Gerando…</div>';
+  $('btnResumo').disabled=true;
+  try{
+    const r = await fetch(workerUrl()+'/resumo', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ texto: textoPlano(), tipo: $('tipo').value, notas: $('obs').value.trim() })
+    });
+    const j = await r.json();
+    if(!r.ok) throw new Error(j.erro || 'falha ao gerar');
+    resumoTexto = j.resumo;
+    $('resumo').innerHTML = markdown(resumoTexto);
+    $('resumo').classList.remove('hidden');
+    $('exportRow').classList.remove('hidden');
+    $('resumoMsg').innerHTML='';
+  }catch(e){
+    $('resumoMsg').innerHTML = `<div class="msg err">Deu problema: ${e.message}</div>`;
+  }finally{ $('btnResumo').disabled=false; }
+};
+
+function markdown(t){
+  return t
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/^### (.*)$/gm,'<h3>$1</h3>')
+    .replace(/^## (.*)$/gm,'<h3>$1</h3>')
+    .replace(/^# (.*)$/gm,'<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/^[-*] (.*)$/gm,'<li>$1</li>')
+    .replace(/(<li>[\s\S]*?<\/li>)(?!\s*<li>)/g,'<ul>$1</ul>')
+    .replace(/^(?!<[hul])(.+)$/gm,'<p>$1</p>')
+    .replace(/<p>\s*<\/p>/g,'');
+}
+
+/* ================= exportação ================= */
+function documento(){
+  const d = new Date().toLocaleString('pt-BR');
+  const tipoTxt = $('tipo').selectedOptions[0].textContent;
+  let s = `SCRIBA — ${tipoTxt}\n${d}\n\n`;
+  if(resumoTexto) s += `${'='.repeat(50)}\nRESUMO\n${'='.repeat(50)}\n\n${resumoTexto}\n\n`;
+  if($('obs').value.trim()) s += `NOTAS\n${$('obs').value.trim()}\n\n`;
+  s += `${'='.repeat(50)}\nTRANSCRIÇÃO\n${'='.repeat(50)}\n${textoPlano()}\n`;
+  return s;
+}
+$('btnTxt').onclick = () => baixar(new Blob([documento()],{type:'text/plain;charset=utf-8'}), `scriba-${carimbo()}.txt`);
+$('btnMd').onclick = () => {
+  const md = `# SCRIBA — ${$('tipo').selectedOptions[0].textContent}\n\n*${new Date().toLocaleString('pt-BR')}*\n\n`
+    + (resumoTexto ? `## Resumo\n\n${resumoTexto}\n\n` : '')
+    + ($('obs').value.trim() ? `## Notas\n\n${$('obs').value.trim()}\n\n` : '')
+    + `## Transcrição\n\n${textoPlano()}\n`;
+  baixar(new Blob([md],{type:'text/markdown;charset=utf-8'}), `scriba-${carimbo()}.md`);
+};
+$('btnCopiar').onclick = async () => {
+  try{ await navigator.clipboard.writeText(documento()); $('btnCopiar').textContent='Copiado'; 
+    setTimeout(()=>$('btnCopiar').textContent='Copiar tudo',1600); }
+  catch(e){ alert('Não consegui copiar. Use o botão de baixar.'); }
+};
+
+function baixar(b, nome){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(b); a.download=nome;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+}
+function carimbo(){
+  const d=new Date(), p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`;
+}
+
+/* ================= utilidades ================= */
+function aviso(alvo, tipo, txt){ $(alvo).innerHTML = `<div class="msg ${tipo}">${txt}</div>`; }
+function limparResultados(){
+  utterances=[]; nomes={}; resumoTexto='';
+  ['cardFalantes','cardTexto','cardResumo','exportRow'].forEach(i=>$(i).classList.add('hidden'));
+  $('resumo').classList.add('hidden'); $('steps').classList.add('hidden');
+  $('transMsg').innerHTML=''; $('resumoMsg').innerHTML='';
+}
+
+/* aviso se a página não estiver em HTTPS */
+if(location.protocol!=='https:' && location.hostname!=='localhost' && location.protocol!=='file:'){
+  aviso('transMsg','warn','O microfone só funciona em HTTPS. Publique no GitHub Pages para testar de verdade.');
+}
+</script>
+</body>
+</html>
