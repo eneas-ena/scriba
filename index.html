@@ -318,7 +318,7 @@
   <div id="histMsg"></div>
 </section>
 
-<footer>SCRIBA · protótipo v0.6</footer>
+<footer>SCRIBA · protótipo v0.7</footer>
 </div>
 <script>
 /* =====================================================================
@@ -328,6 +328,14 @@
                     assina os endereços. Sem teto de tamanho.
      sem Supabase → o áudio passa pelo Worker (serve para arquivos pequenos).
    ===================================================================== */
+
+/* =====================================================================
+   ENDEREÇO DO WORKER
+   Preencha a linha abaixo com a URL do seu Worker e ela passa a valer
+   em qualquer aparelho, sem precisar digitar de novo. O campo na tela
+   continua existindo para quando você quiser apontar para outro lugar.
+   ===================================================================== */
+const WORKER_PADRAO = 'https://scriba-ia.eneaspr.workers.dev';
 
 /* ---------- armazenamento tolerante ---------- */
 const mem = {};
@@ -359,7 +367,7 @@ function normalizarUrl(bruto){
 }
 const workerUrl = () => normalizarUrl($('worker').value);
 
-$('worker').value = normalizarUrl(store.get('scriba_worker') || '');
+$('worker').value = normalizarUrl(store.get('scriba_worker') || WORKER_PADRAO);
 
 $('btnSalvar').onclick = () => {
   const limpo = normalizarUrl($('worker').value);
@@ -381,6 +389,9 @@ async function verificarWorker(silencioso){
     if(!j.anthropic)  falta.push('ANTHROPIC_KEY');
     if(falta.length){
       aviso('workerMsg','warn','Worker na versão '+j.versao+', mas faltam variáveis: '+falta.join(' e ')+'. Adicione no Cloudflare e faça Deploy de novo.');
+    }else if(temSupabase && j.chave_correta === false){
+      const nomes = {publicavel:'a chave publicável (anon)', ilegivel:'uma chave ilegível', desconhecida:'uma chave em formato desconhecido', ausente:'nenhuma chave'};
+      aviso('workerMsg','err','Worker na versão '+j.versao+', mas a variável SUPABASE_SERVICE contém '+(nomes[j.chave_supabase]||j.chave_supabase)+'. É preciso a chave de serviço (sb_secret_… ou a service_role antiga), senão o banco recusa as escritas.');
     }else if(!temSupabase){
       aviso('workerMsg','warn','Worker na versão '+j.versao+'. O Supabase não está configurado: o histórico fica desligado e o áudio passa pelo Worker (bom só para arquivos pequenos).');
     }else{
@@ -1383,7 +1394,7 @@ function limparResultados(){
    INÍCIO
    ===================================================================== */
 if(store.get('scriba_ultimo_id')) $('btnRetomar').classList.remove('hidden');
-if(workerUrl()) verificarWorker(true);
+if(workerUrl()){ store.set('scriba_worker', workerUrl()); verificarWorker(true); }
 
 if(location.protocol!=='https:' && location.hostname!=='localhost' && location.protocol!=='file:'){
   aviso('transMsg','warn','O microfone só funciona em HTTPS. Publique no GitHub Pages para testar de verdade.');
