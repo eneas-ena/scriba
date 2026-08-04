@@ -431,7 +431,7 @@
 const WORKER_PADRAO = 'https://scriba-ia.eneaspr.workers.dev';
 
 /* Versão do aplicativo, exibida sob o nome no cabeçalho. */
-const VERSAO_APP = '0.9';
+const VERSAO_APP = '0.10';
 
 /* ---------- armazenamento tolerante ---------- */
 const mem = {};
@@ -805,6 +805,7 @@ function receberArquivo(f){
 
 function mostrarAudio(){
   const url = URL.createObjectURL(blob);
+  buscaPronta = false; avisouBusca = false;
   $('player').src = url;
   $('player').onloadedmetadata = () => {
     if(isFinite($('player').duration) && $('player').duration>0){
@@ -1055,19 +1056,71 @@ $('btnEditar').onclick = () => {
 };
 
 /* ---------- áudio sincronizado com o texto ---------- */
-function pularPara(ms){
+let buscaPronta = false, avisouBusca = false;
+
+/**
+ * Gravações do MediaRecorder saem sem índice de busca: o navegador não
+ * sabe a duração e recusa qualquer salto, voltando ao início. Pedir um
+ * instante absurdamente distante obriga o navegador a varrer o arquivo
+ * uma vez e descobrir a duração — depois disso os saltos funcionam.
+ */
+function prepararBusca(p){
+  return new Promise(resolve => {
+    if(buscaPronta || (isFinite(p.duration) && p.duration > 0)){
+      buscaPronta = true;
+      return resolve();
+    }
+    let encerrado = false;
+    const terminar = () => {
+      if(encerrado) return;
+      encerrado = true;
+      p.removeEventListener('timeupdate', aoAndar);
+      p.removeEventListener('durationchange', aoMudar);
+      clearTimeout(desistir);
+      try{ p.currentTime = 0; }catch(e){}
+      buscaPronta = true;
+      resolve();
+    };
+    const aoAndar = () => { if(p.currentTime > 0) terminar(); };
+    const aoMudar = () => { if(isFinite(p.duration) && p.duration > 0) terminar(); };
+    const desistir = setTimeout(terminar, 4000);
+
+    p.addEventListener('timeupdate', aoAndar);
+    p.addEventListener('durationchange', aoMudar);
+    try{ p.currentTime = 1e101; }catch(e){ terminar(); }
+  });
+}
+
+async function pularPara(ms){
   const p = $('player');
   if(!p.src){
     aviso('transMsg','warn','O áudio deste registro não está carregado. Se ele foi apagado, o texto continua disponível, mas não há som para ouvir.');
     return;
   }
-  p.currentTime = (ms||0)/1000;
+
+  const alvo = (ms || 0) / 1000;
+  if(alvo > 0.1) await prepararBusca(p);
+
+  try{ p.currentTime = alvo; }catch(e){}
   p.play().catch(()=>{});
   $('playBox').scrollIntoView({behavior:'smooth', block:'nearest'});
+
+  // Confere se o salto pegou de verdade
+  if(alvo > 1){
+    setTimeout(() => {
+      if(p.currentTime < alvo - 2 && !avisouBusca){
+        avisouBusca = true;
+        const semMarcas = utterances.every(u => !u.start);
+        aviso('transMsg','warn', semMarcas
+          ? 'Esta transcrição não tem marcação de tempo nas falas, então não há para onde pular.'
+          : 'Este arquivo de áudio não aceita saltos. Use a barra do tocador — ou baixe o áudio e ouça num aplicativo próprio.');
+      }
+    }, 600);
+  }
 }
 
 $('player').addEventListener('timeupdate', () => {
-  if(editando || !utterances.length) return;
+  if(editando || !utterances.length || !buscaPronta) return;
   const agora = $('player').currentTime * 1000;
   let achado = -1;
   for(let i=0;i<utterances.length;i++){
@@ -1522,6 +1575,7 @@ async function recuperarAudio(caminho){
       method:'POST', headers:{'Content-Type':'text/plain'},
       body: JSON.stringify({ path: caminho, horas: 4 })
     }, 25000);
+    buscaPronta = false; avisouBusca = false;
     $('player').src = j.url;
     $('playBox').classList.remove('hidden');
     $('fileInfo').textContent = `Áudio guardado · ${duracaoTexto(registro.duracao)}`;
