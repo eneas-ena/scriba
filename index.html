@@ -293,7 +293,7 @@
   </div>
 </section>
 
-<footer>SCRIBA · protótipo v0.3</footer>
+<footer>SCRIBA · protótipo v0.4</footer>
 </div>
 
 <script>
@@ -312,13 +312,24 @@ let audioCtx=null, analyser=null, rafId=null, wakeLock=null;
 let utterances=[], nomes={}, resumoTexto='';
 
 /* ================= configuração ================= */
-$('worker').value = store.get('scriba_worker') || '';
+$('worker').value = normalizarUrl(store.get('scriba_worker') || '');
 $('btnSalvar').onclick = () => {
-  store.set('scriba_worker', $('worker').value.trim().replace(/\/+$/,''));
+  const limpo = normalizarUrl($('worker').value);
+  $('worker').value = limpo;          // mostra ao usuário o endereço já corrigido
+  store.set('scriba_worker', limpo);
   $('cfgMsg').classList.remove('hidden');
   setTimeout(()=>$('cfgMsg').classList.add('hidden'), 1800);
 };
-const workerUrl = () => ($('worker').value.trim().replace(/\/+$/,''));
+/** Normaliza o que o usuário digitou: garante https://, tira barras e caminhos sobrando. */
+function normalizarUrl(bruto){
+  let u = (bruto || '').trim().replace(/\s+/g,'');
+  if(!u) return '';
+  if(!/^https?:\/\//i.test(u)) u = 'https://' + u;
+  u = u.replace(/\/+$/,'');
+  u = u.replace(/\/(teste|upload|transcrever|status|resumo)$/i,'');
+  return u;
+}
+const workerUrl = () => normalizarUrl($('worker').value);
 
 $('btnTestarWorker').onclick = async () => {
   if(!workerUrl()){ aviso('workerMsg','err','Informe o endereço do Worker.'); return; }
@@ -337,9 +348,18 @@ $('btnTestarWorker').onclick = async () => {
 
 /** Chama o Worker e devolve JSON. Quando algo vem errado, diz o que veio. */
 async function chamar(caminho, opcoes, ms){
+  const alvo = workerUrl() + caminho;
+  try{
+    if(new URL(alvo).host === location.host){
+      throw new Error('o endereço do Worker está apontando para o próprio site. Confira se ele começa com https:// e termina em .workers.dev');
+    }
+  }catch(e){
+    if(e.message.includes('próprio site')) throw e;
+    throw new Error('o endereço do Worker parece inválido: '+workerUrl());
+  }
   let r;
   try{
-    r = await comPrazo(workerUrl()+caminho, opcoes, ms);
+    r = await comPrazo(alvo, opcoes, ms);
   }catch(e){
     throw new Error(`não consegui alcançar ${caminho} — ${e.message}`);
   }
