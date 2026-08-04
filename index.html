@@ -25,7 +25,17 @@
 
   header{text-align:center;padding:18px 0 26px;border-bottom:1px solid rgba(201,162,39,.28);margin-bottom:26px}
   header h1{font-family:'Cinzel',serif;font-size:2.1rem;letter-spacing:.22em;color:var(--gold);font-weight:600}
-  header p{font-size:.95rem;color:var(--muted);font-family:var(--ui);letter-spacing:.04em;margin-top:6px}
+  header .versao{font-family:var(--ui);font-size:.7rem;letter-spacing:.18em;color:var(--muted);
+    margin-top:4px;text-transform:uppercase}
+  header p{font-size:.95rem;color:var(--muted);font-family:var(--ui);letter-spacing:.04em;margin-top:8px}
+  .elo{background:none;border:none;padding:6px 0 0;margin:0;font-family:var(--ui);font-size:.72rem;
+    letter-spacing:.08em;text-transform:none;color:var(--muted);cursor:pointer;
+    display:inline-flex;align-items:center;gap:7px}
+  .elo:hover{color:var(--linen);filter:none}
+  .elo .luz{width:7px;height:7px;border-radius:50%;background:var(--muted);flex:none}
+  .elo.bem .luz{background:var(--ok)}
+  .elo.mal .luz{background:var(--err)}
+  .elo.meio .luz{background:var(--warn)}
 
   .card{background:var(--navy-2);border:1px solid rgba(201,162,39,.18);border-radius:12px;padding:20px;margin-bottom:18px}
   .card h2{font-family:'Cinzel',serif;font-size:.85rem;letter-spacing:.18em;color:var(--gold);
@@ -139,11 +149,13 @@
 
 <header>
   <h1>SCRIBA</h1>
+  <div class="versao" id="versao">v0.7</div>
   <p>Gravação · Transcrição com falantes · Resumo</p>
+  <button class="elo" id="btnConfig"><span class="luz"></span><span id="estado">verificando conexão…</span></button>
 </header>
 
-<!-- ============ CONFIGURAÇÃO ============ -->
-<section class="card">
+<!-- ============ CONFIGURAÇÃO (oculta; abre pelo cabeçalho) ============ -->
+<section class="card hidden" id="cardConfig">
   <h2>Configuração</h2>
   <div class="field">
     <label for="worker">Endereço do Worker</label>
@@ -318,7 +330,6 @@
   <div id="histMsg"></div>
 </section>
 
-<footer>SCRIBA · protótipo v0.7</footer>
 </div>
 <script>
 /* =====================================================================
@@ -336,6 +347,9 @@
    continua existindo para quando você quiser apontar para outro lugar.
    ===================================================================== */
 const WORKER_PADRAO = 'https://scriba-ia.eneaspr.workers.dev';
+
+/* Versão do aplicativo, exibida sob o nome no cabeçalho. */
+const VERSAO_APP = '0.7';
 
 /* ---------- armazenamento tolerante ---------- */
 const mem = {};
@@ -379,8 +393,25 @@ $('btnSalvar').onclick = () => {
 
 $('btnTestarWorker').onclick = () => verificarWorker(false);
 
+$('btnConfig').onclick = () => {
+  const oculta = $('cardConfig').classList.toggle('hidden');
+  if(!oculta) $('cardConfig').scrollIntoView({behavior:'smooth', block:'nearest'});
+};
+
+/** Atualiza a lâmpada e o texto de estado no cabeçalho. */
+function estado(situacao, texto){
+  $('estado').textContent = texto;
+  $('btnConfig').className = 'elo ' + situacao;
+}
+
 async function verificarWorker(silencioso){
-  if(!workerUrl()){ if(!silencioso) aviso('workerMsg','err','Informe o endereço do Worker.'); return; }
+  if(!workerUrl()){
+    estado('mal','endereço do Worker não definido');
+    abrirConfig();
+    aviso('workerMsg','err','Informe o endereço do Worker.');
+    return;
+  }
+  estado('', 'verificando conexão…');
   try{
     const j = await chamar('/teste', {}, 15000);
     temSupabase = Boolean(j.supabase);
@@ -388,22 +419,32 @@ async function verificarWorker(silencioso){
     if(!j.assemblyai) falta.push('ASSEMBLYAI_KEY');
     if(!j.anthropic)  falta.push('ANTHROPIC_KEY');
     if(falta.length){
+      estado('mal','faltam variáveis no Worker');
+      abrirConfig();
       aviso('workerMsg','warn','Worker na versão '+j.versao+', mas faltam variáveis: '+falta.join(' e ')+'. Adicione no Cloudflare e faça Deploy de novo.');
     }else if(temSupabase && j.chave_correta === false){
       const nomes = {publicavel:'a chave publicável (anon)', ilegivel:'uma chave ilegível', desconhecida:'uma chave em formato desconhecido', ausente:'nenhuma chave'};
+      estado('mal','chave do Supabase incorreta');
+      abrirConfig();
       aviso('workerMsg','err','Worker na versão '+j.versao+', mas a variável SUPABASE_SERVICE contém '+(nomes[j.chave_supabase]||j.chave_supabase)+'. É preciso a chave de serviço (sb_secret_… ou a service_role antiga), senão o banco recusa as escritas.');
     }else if(!temSupabase){
+      estado('meio','sem Supabase · histórico desligado');
       aviso('workerMsg','warn','Worker na versão '+j.versao+'. O Supabase não está configurado: o histórico fica desligado e o áudio passa pelo Worker (bom só para arquivos pequenos).');
     }else{
+      estado('bem','conectado');
       aviso('workerMsg','ok','Worker na versão '+j.versao+'. Tudo configurado.');
     }
     $('cardHistorico').classList.toggle('hidden', !temSupabase);
     if(temSupabase) carregarHistorico();
   }catch(e){
     temSupabase=false;
+    estado('mal','sem conexão com o Worker');
+    abrirConfig();
     aviso('workerMsg','err','Não consegui falar com o Worker: '+e.message);
   }
 }
+
+function abrirConfig(){ $('cardConfig').classList.remove('hidden'); }
 
 /** Chama o Worker e devolve JSON. Quando algo vem errado, diz o que veio. */
 async function chamar(caminho, opcoes, ms){
@@ -1393,8 +1434,10 @@ function limparResultados(){
 /* =====================================================================
    INÍCIO
    ===================================================================== */
+$('versao').textContent = 'v' + VERSAO_APP;
 if(store.get('scriba_ultimo_id')) $('btnRetomar').classList.remove('hidden');
 if(workerUrl()){ store.set('scriba_worker', workerUrl()); verificarWorker(true); }
+else { estado('mal','endereço do Worker não definido'); abrirConfig(); }
 
 if(location.protocol!=='https:' && location.hostname!=='localhost' && location.protocol!=='file:'){
   aviso('transMsg','warn','O microfone só funciona em HTTPS. Publique no GitHub Pages para testar de verdade.');
