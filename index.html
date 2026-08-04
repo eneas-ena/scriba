@@ -174,8 +174,12 @@
     <input type="text" id="worker" placeholder="https://scriba-ia.eneaspr.workers.dev">
     <div class="hint">Cole aqui a URL do seu Worker no Cloudflare. Fica salvo neste aparelho.</div>
   </div>
-  <button class="small" id="btnSalvar">Salvar</button>
-  <span id="cfgMsg" class="badge hidden">Salvo</span>
+  <div class="row">
+    <button class="small" id="btnSalvar">Salvar</button>
+    <button class="small ghost" id="btnTestarWorker">Testar conexão</button>
+  </div>
+  <span id="cfgMsg" class="badge hidden mt">Salvo</span>
+  <div id="workerMsg"></div>
 </section>
 
 <!-- ============ 2. MICROFONE ============ -->
@@ -315,6 +319,33 @@ $('btnSalvar').onclick = () => {
   setTimeout(()=>$('cfgMsg').classList.add('hidden'), 1800);
 };
 const workerUrl = () => ($('worker').value.trim().replace(/\/+$/,''));
+
+$('btnTestarWorker').onclick = async () => {
+  if(!workerUrl()){ aviso('workerMsg','err','Informe o endereço do Worker.'); return; }
+  aviso('workerMsg','ok','Verificando…');
+  try{
+    const r = await comPrazo(workerUrl()+'/teste', {}, 15000);
+    const j = await r.json();
+    const falta = [];
+    if(!j.assemblyai) falta.push('ASSEMBLYAI_KEY');
+    if(!j.anthropic)  falta.push('ANTHROPIC_KEY');
+    if(falta.length) aviso('workerMsg','warn','Worker respondeu, mas faltam variáveis: '+falta.join(' e ')+'. Adicione no Cloudflare e faça Deploy de novo.');
+    else aviso('workerMsg','ok','Worker respondendo e chaves configuradas.');
+  }catch(e){
+    aviso('workerMsg','err','Não consegui falar com o Worker: '+e.message+'. Confira se a URL está certa e se o Deploy foi feito.');
+  }
+};
+
+/** Chamada com prazo máximo — evita ficar esperando para sempre. */
+async function comPrazo(url, opcoes, ms){
+  const controle = new AbortController();
+  const alarme = setTimeout(()=>controle.abort(), ms);
+  try{ return await fetch(url, {...opcoes, signal: controle.signal}); }
+  catch(e){
+    if(e.name==='AbortError') throw new Error('o servidor não respondeu dentro do prazo');
+    throw e;
+  }finally{ clearTimeout(alarme); }
+}
 
 /* ================= microfone ================= */
 $('btnPermitir').onclick = async () => {
@@ -510,9 +541,10 @@ $('btnTranscrever').onclick = async () => {
   try{
     // 1 — envio
     passo('s1','doing');
-    const up = await fetch(workerUrl()+'/upload', {
+    $('s1').innerHTML = `<span class="dot"></span> Enviando áudio · ${(blob.size/1048576).toFixed(2)} MB`;
+    const up = await comPrazo(workerUrl()+'/upload', {
       method:'POST', headers:{'Content-Type':'application/octet-stream'}, body: blob
-    });
+    }, 180000);
     const upJson = await up.json();
     if(!up.ok) throw new Error(upJson.erro || 'falha no envio');
     passo('s1','done');
@@ -531,7 +563,7 @@ $('btnTranscrever').onclick = async () => {
     let dados=null, voltas=0;
     while(voltas < 400){
       await pausa(3000); voltas++;
-      const r = await fetch(workerUrl()+'/status?id='+encodeURIComponent(stJson.id));
+      const r = await comPrazo(workerUrl()+'/status?id='+encodeURIComponent(stJson.id), {}, 20000);
       const j = await r.json();
       if(j.status==='completed'){ dados=j; break; }
       if(j.status==='error') throw new Error(j.erro || 'o serviço retornou erro');
