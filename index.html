@@ -125,6 +125,23 @@
   .turn p{font-size:1.02rem;line-height:1.65}
   .scroll{max-height:420px;overflow-y:auto;padding-right:8px}
 
+  .turn p[data-ms]{cursor:pointer;border-radius:5px;padding:2px 6px;margin:0 -6px;transition:background .12s}
+  .turn p[data-ms]:hover{background:rgba(201,162,39,.09)}
+  .turn p.tocando{background:rgba(201,162,39,.16);box-shadow:inset 3px 0 0 var(--gold)}
+  .turn p.editavel{cursor:text;background:rgba(255,255,255,.035);border:1px dashed rgba(201,162,39,.3)}
+  .turn p.editavel:focus{outline:2px solid var(--gold);outline-offset:1px;background:rgba(255,255,255,.06)}
+
+  .painel{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:6px}
+  .caixa{background:var(--navy);border:1px solid rgba(201,162,39,.15);border-radius:9px;padding:14px}
+  .caixa .rot{font-family:var(--ui);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .caixa .num{font-family:var(--ui);font-size:1.5rem;font-weight:300;color:var(--gold-soft);
+    font-variant-numeric:tabular-nums;margin-top:4px}
+  .caixa .sub{font-family:var(--ui);font-size:.7rem;color:var(--muted);margin-top:2px}
+
+  details{margin-top:14px}
+  details summary{font-family:var(--ui);font-size:.78rem;color:var(--muted);cursor:pointer;letter-spacing:.05em}
+  details summary::marker{color:var(--gold)}
+
   .namer{display:flex;gap:9px;align-items:center;margin-bottom:9px}
   .namer .tag{font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.1em;color:var(--gold);width:88px;flex:none}
 
@@ -287,7 +304,28 @@
 <!-- ============ TEXTO ============ -->
 <section class="card hidden" id="cardTexto">
   <h2>Texto</h2>
+  <div class="row tight" style="margin-bottom:10px">
+    <button class="small ghost" id="btnEditar">Corrigir palavras</button>
+  </div>
+  <div class="hint" id="dicaTexto" style="margin-bottom:12px">Toque numa fala para ouvir esse trecho do áudio.</div>
   <div class="scroll" id="texto"></div>
+</section>
+
+<!-- ============ TEXTO REVISADO ============ -->
+<section class="card hidden" id="cardRevisao">
+  <h2>Texto revisado</h2>
+  <div class="hint" style="margin-bottom:14px">
+    Aqui a conversa vira texto corrido e legível, <strong>na íntegra</strong>, sem resumir nada:
+    pontuação corrigida, gaguejos removidos, parágrafos formados. Leia, conserte o que estiver errado,
+    e o resumo passa a ser gerado a partir desta versão.
+  </div>
+  <button id="btnRevisar">Gerar texto revisado</button>
+  <div id="revisaoMsg"></div>
+  <textarea id="revisado" rows="16" class="hidden mt" placeholder="O texto revisado aparece aqui e pode ser editado livremente."></textarea>
+  <div class="row tight mt hidden" id="revisaoAcoes">
+    <button class="small ghost" id="btnSalvarRevisao">Salvar correções</button>
+    <button class="small ghost" id="btnRefazerRevisao">Gerar de novo</button>
+  </div>
 </section>
 
 <!-- ============ RESUMO ============ -->
@@ -337,6 +375,43 @@
   <div id="histMsg"></div>
 </section>
 
+<!-- ============ GASTOS ============ -->
+<section class="card hidden" id="cardGastos">
+  <h2>Gastos</h2>
+  <div class="painel" id="painelGastos"></div>
+  <div class="hint" id="gastosNota"></div>
+
+  <details>
+    <summary>Ajustar as tarifas usadas no cálculo</summary>
+    <div class="row" style="margin-top:12px">
+      <div class="field">
+        <label for="tfTrans">Transcrição · US$ por hora</label>
+        <input type="text" id="tfTrans" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="tfDolar">Dólar em reais (opcional)</label>
+        <input type="text" id="tfDolar" inputmode="decimal" placeholder="deixe vazio p/ ver só em dólar">
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="tfEnt">Claude entrada · US$ por milhão</label>
+        <input type="text" id="tfEnt" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="tfSai">Claude saída · US$ por milhão</label>
+        <input type="text" id="tfSai" inputmode="decimal">
+      </div>
+    </div>
+    <button class="small ghost" id="btnTarifas">Aplicar</button>
+    <div class="hint" style="margin-top:10px">
+      Os valores iniciais são de referência e podem mudar. Confira nos painéis da AssemblyAI
+      e da Anthropic e ajuste aqui — o cálculo é uma estimativa, não a fatura.
+    </div>
+  </details>
+  <div id="gastosMsg"></div>
+</section>
+
 </div>
 <script>
 /* =====================================================================
@@ -356,7 +431,7 @@
 const WORKER_PADRAO = 'https://scriba-ia.eneaspr.workers.dev';
 
 /* Versão do aplicativo, exibida sob o nome no cabeçalho. */
-const VERSAO_APP = '0.8';
+const VERSAO_APP = '0.9';
 
 /* ---------- armazenamento tolerante ---------- */
 const mem = {};
@@ -372,8 +447,9 @@ let stream=null, rec=null, chunks=[], blob=null, nomeArquivo='';
 let t0=0, acc=0, tick=null, gravando=false, pausado=false, processando=false;
 let audioCtx=null, analyser=null, rafId=null, wakeLock=null;
 let utterances=[], nomes={}, resumoTexto='';
+let editando=false, tocandoIndice=-1;
 let temSupabase=false;
-let registro = { id:null, transcriptId:null, audioPath:null, duracao:0, origem:'gravado' };
+let registro = { id:null, transcriptId:null, audioPath:null, duracao:0, origem:'gravado', entrada:0, saida:0 };
 
 /* =====================================================================
    CONFIGURAÇÃO E COMUNICAÇÃO
@@ -442,7 +518,8 @@ async function verificarWorker(silencioso){
       aviso('workerMsg','ok','Worker na versão '+j.versao+'. Tudo configurado.');
     }
     $('cardHistorico').classList.toggle('hidden', !temSupabase);
-    if(temSupabase) carregarHistorico();
+    $('cardGastos').classList.toggle('hidden', !temSupabase);
+    if(temSupabase){ preencherTarifas(); carregarHistorico(); carregarGastos(); }
   }catch(e){
     temSupabase=false;
     estado('mal','sem conexão com o Worker');
@@ -878,7 +955,7 @@ async function acompanhar(id){
   nomes={};
   montarNomes(); renderTexto();
   passo('s3','done');
-  ['cardFalantes','cardTexto','cardResumo'].forEach(i=>$(i).classList.remove('hidden'));
+  ['cardFalantes','cardTexto','cardRevisao','cardResumo'].forEach(i=>$(i).classList.remove('hidden'));
   $('cardTexto').scrollIntoView({behavior:'smooth'});
 }
 
@@ -919,7 +996,7 @@ function montarNomes(){
     div.innerHTML = `<span class="tag">Voz ${sp}</span>`;
     const inp=document.createElement('input');
     inp.type='text'; inp.value=nomes[sp];
-    inp.oninput = () => { nomes[sp]=inp.value || ('Falante '+sp); renderTexto(); };
+    inp.oninput = () => { nomes[sp]=inp.value || ('Falante '+sp); atualizarNomesNaTela(); };
     inp.onblur  = () => { if(registro.id) salvarRegistro(); };
     div.appendChild(inp); box.appendChild(div);
   });
@@ -928,19 +1005,84 @@ function montarNomes(){
 function renderTexto(){
   const box = $('texto'); box.innerHTML='';
   let anterior=null;
-  utterances.forEach(u=>{
+  utterances.forEach((u,i)=>{
     const div=document.createElement('div'); div.className='turn';
     if(u.speaker!==anterior){
-      const w=document.createElement('span'); w.className='who';
+      const w=document.createElement('span'); w.className='who'; w.dataset.voz=u.speaker;
       w.textContent = nomes[u.speaker] || u.speaker;
       const t=document.createElement('span'); t.className='when'; t.textContent = tempo(u.start);
       w.appendChild(t); div.appendChild(w);
       anterior=u.speaker;
     }
-    const p=document.createElement('p'); p.textContent=u.text; div.appendChild(p);
+    const p=document.createElement('p');
+    p.textContent = u.text;
+    p.dataset.i = i;
+    p.dataset.ms = u.start || 0;
+
+    if(editando){
+      p.contentEditable = 'true';
+      p.classList.add('editavel');
+      p.spellcheck = true;
+      p.oninput = () => { utterances[i].text = p.textContent; };
+      p.onblur   = () => { if(registro.id) salvarRegistro(); };
+    }else{
+      p.onclick = () => pularPara(u.start);
+    }
+    div.appendChild(p);
     box.appendChild(div);
   });
+  tocandoIndice = -1;
 }
+
+/** Troca só os nomes na tela, sem redesenhar tudo (preserva o cursor na edição). */
+function atualizarNomesNaTela(){
+  document.querySelectorAll('#texto .who').forEach(w => {
+    const voz = w.dataset.voz;
+    const marca = w.querySelector('.when');
+    w.textContent = nomes[voz] || voz;
+    if(marca) w.appendChild(marca);
+  });
+}
+
+$('btnEditar').onclick = () => {
+  editando = !editando;
+  $('btnEditar').textContent = editando ? 'Concluir correção' : 'Corrigir palavras';
+  $('dicaTexto').textContent = editando
+    ? 'Clique em qualquer fala e digite. As correções são salvas automaticamente.'
+    : 'Toque numa fala para ouvir esse trecho do áudio.';
+  renderTexto();
+  if(!editando && registro.id) salvarRegistro();
+};
+
+/* ---------- áudio sincronizado com o texto ---------- */
+function pularPara(ms){
+  const p = $('player');
+  if(!p.src){
+    aviso('transMsg','warn','O áudio deste registro não está carregado. Se ele foi apagado, o texto continua disponível, mas não há som para ouvir.');
+    return;
+  }
+  p.currentTime = (ms||0)/1000;
+  p.play().catch(()=>{});
+  $('playBox').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+$('player').addEventListener('timeupdate', () => {
+  if(editando || !utterances.length) return;
+  const agora = $('player').currentTime * 1000;
+  let achado = -1;
+  for(let i=0;i<utterances.length;i++){
+    if((utterances[i].start||0) <= agora) achado = i; else break;
+  }
+  if(achado === tocandoIndice) return;
+  const antigo = document.querySelector('#texto p.tocando');
+  if(antigo) antigo.classList.remove('tocando');
+  const novo = document.querySelector('#texto p[data-i="'+achado+'"]');
+  if(novo){
+    novo.classList.add('tocando');
+    novo.scrollIntoView({block:'nearest'});
+  }
+  tocandoIndice = achado;
+});
 
 function tempo(ms){
   const s=Math.floor((ms||0)/1000);
@@ -963,6 +1105,93 @@ function textoPlano(){
 }
 
 /* =====================================================================
+   TEXTO REVISADO
+   Versão legível da conversa inteira, sem resumir. O usuário corrige o
+   que estiver errado aqui, e é desta versão que o resumo é gerado.
+   ===================================================================== */
+
+/** Divide a transcrição em blocos que caibam confortavelmente num pedido. */
+function blocosDeTexto(limite){
+  const blocos = [];
+  let atual = '', anterior = null;
+  const cabeca = u => `\n\n${(nomes[u.speaker]||u.speaker).toUpperCase()} [${tempo(u.start)}]\n`;
+
+  utterances.forEach(u => {
+    let pedaco = (u.speaker !== anterior ? cabeca(u) : '') + u.text + ' ';
+    if(atual.length && atual.length + pedaco.length > limite){
+      blocos.push(atual.trim());
+      atual = '';
+      pedaco = cabeca(u) + u.text + ' ';   // recomeça identificando quem fala
+    }
+    anterior = u.speaker;
+    atual += pedaco;
+  });
+  if(atual.trim()) blocos.push(atual.trim());
+  return blocos;
+}
+
+$('btnRevisar').onclick = () => gerarRevisao();
+$('btnRefazerRevisao').onclick = () => {
+  if(confirm('Gerar de novo? As correções que você fez no texto revisado serão perdidas.')) gerarRevisao();
+};
+
+async function gerarRevisao(){
+  if(!utterances.length) return;
+  const blocos = blocosDeTexto(11000);
+  $('btnRevisar').disabled = true;
+  $('btnRefazerRevisao').disabled = true;
+
+  try{
+    const saida = [];
+    let anterior = '';
+    for(let i=0;i<blocos.length;i++){
+      $('revisaoMsg').innerHTML = blocos.length > 1
+        ? `<div class="msg ok">Revisando parte ${i+1} de ${blocos.length}…</div>`
+        : '<div class="msg ok">Revisando…</div>';
+
+      const j = await chamar('/revisar', {
+        method:'POST', headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify({ texto: blocos[i], anterior, notas: $('obs').value.trim() })
+      }, 290000);
+
+      contabilizar(j.uso);
+      saida.push((j.texto||'').trim());
+      anterior = (j.texto||'').slice(-400);
+    }
+
+    $('revisado').value = saida.join('\n\n');
+    $('revisado').classList.remove('hidden');
+    $('revisaoAcoes').classList.remove('hidden');
+    $('revisaoMsg').innerHTML = '<div class="msg ok">Pronto. Leia com atenção e corrija o que estiver errado antes de gerar o resumo.</div>';
+    ajustarAltura($('revisado'));
+    await salvarRegistro();
+  }catch(e){
+    $('revisaoMsg').innerHTML = `<div class="msg err">Deu problema: ${e.message}</div>`;
+  }finally{
+    $('btnRevisar').disabled = false;
+    $('btnRefazerRevisao').disabled = false;
+    $('btnRevisar').textContent = 'Gerar texto revisado';
+  }
+}
+
+$('btnSalvarRevisao').onclick = async () => {
+  await salvarRegistro();
+  $('revisaoMsg').innerHTML = '<div class="msg ok">Correções salvas.</div>';
+};
+
+function ajustarAltura(el){
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight + 8, 900) + 'px';
+}
+$('revisado').addEventListener('input', () => ajustarAltura($('revisado')));
+
+/** O resumo usa o texto revisado quando ele existe. */
+function textoBase(){
+  const revisado = $('revisado').value.trim();
+  return revisado || textoPlano();
+}
+
+/* =====================================================================
    RESUMO
    ===================================================================== */
 $('btnResumo').onclick = async () => {
@@ -972,8 +1201,9 @@ $('btnResumo').onclick = async () => {
   try{
     const j = await chamar('/resumo', {
       method:'POST', headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({ texto: textoPlano(), tipo: $('tipo').value, notas: $('obs').value.trim() })
-    }, 190000);
+      body: JSON.stringify({ texto: textoBase(), tipo: $('tipo').value, notas: $('obs').value.trim() })
+    }, 290000);
+    contabilizar(j.uso);
     resumoTexto = j.resumo;
     $('resumo').innerHTML = markdown(resumoTexto);
     $('resumo').classList.remove('hidden');
@@ -997,6 +1227,104 @@ function markdown(t){
 }
 
 /* =====================================================================
+   GASTOS
+   O Worker devolve só as quantidades; as tarifas ficam aqui, para
+   poderem ser corrigidas sem novo Deploy.
+   ===================================================================== */
+const TARIFAS_PADRAO = { trans: 0.17, entrada: 3.00, saida: 15.00, dolar: '' };
+
+function tarifas(){
+  try{ return { ...TARIFAS_PADRAO, ...JSON.parse(store.get('scriba_tarifas') || '{}') }; }
+  catch(e){ return { ...TARIFAS_PADRAO }; }
+}
+
+function contabilizar(uso){
+  if(!uso) return;
+  registro.entrada += uso.entrada || 0;
+  registro.saida   += uso.saida   || 0;
+}
+
+function preencherTarifas(){
+  const t = tarifas();
+  $('tfTrans').value = t.trans;
+  $('tfEnt').value   = t.entrada;
+  $('tfSai').value   = t.saida;
+  $('tfDolar').value = t.dolar;
+}
+
+$('btnTarifas').onclick = () => {
+  const numero = v => { const n = parseFloat(String(v).replace(',','.')); return isFinite(n) ? n : 0; };
+  store.set('scriba_tarifas', JSON.stringify({
+    trans:   numero($('tfTrans').value),
+    entrada: numero($('tfEnt').value),
+    saida:   numero($('tfSai').value),
+    dolar:   $('tfDolar').value.trim() ? numero($('tfDolar').value) : ''
+  }));
+  carregarGastos();
+};
+
+async function carregarGastos(){
+  if(!temSupabase) return;
+  try{
+    const j = await chamar('/gastos', {}, 25000);
+    desenharGastos(j.registros || []);
+    $('gastosMsg').innerHTML='';
+  }catch(e){
+    aviso('gastosMsg','warn','Não consegui somar os gastos: '+e.message);
+  }
+}
+
+function desenharGastos(registros){
+  const t = tarifas();
+  const inicioMes = new Date();
+  inicioMes.setDate(1); inicioMes.setHours(0,0,0,0);
+
+  const somar = lista => {
+    const seg = lista.reduce((a,r)=>a + (r.duracao_seg||0), 0);
+    const ent = lista.reduce((a,r)=>a + (Number(r.tokens_entrada)||0), 0);
+    const sai = lista.reduce((a,r)=>a + (Number(r.tokens_saida)||0), 0);
+    return {
+      seg, ent, sai,
+      custo: (seg/3600)*t.trans + (ent/1e6)*t.entrada + (sai/1e6)*t.saida
+    };
+  };
+
+  const tudo = somar(registros);
+  const mes  = somar(registros.filter(r => new Date(r.criado_em) >= inicioMes));
+
+  const money = v => {
+    const usd = 'US$ ' + v.toFixed(2);
+    return t.dolar ? `${usd}  ·  R$ ${(v*t.dolar).toFixed(2)}` : usd;
+  };
+  const horas = seg => (seg/3600).toFixed(1).replace('.',',') + ' h';
+
+  $('painelGastos').innerHTML = `
+    <div class="caixa">
+      <div class="rot">Este mês</div>
+      <div class="num">${money(mes.custo)}</div>
+      <div class="sub">${horas(mes.seg)} de áudio</div>
+    </div>
+    <div class="caixa">
+      <div class="rot">Desde o início</div>
+      <div class="num">${money(tudo.custo)}</div>
+      <div class="sub">${horas(tudo.seg)} em ${registros.length} registro${registros.length===1?'':'s'}</div>
+    </div>
+    <div class="caixa">
+      <div class="rot">Custo médio por hora</div>
+      <div class="num">${tudo.seg ? money(tudo.custo/(tudo.seg/3600)) : '—'}</div>
+      <div class="sub">transcrição + resumo</div>
+    </div>`;
+
+  const partes = [];
+  if(tudo.seg) partes.push(`Transcrição: ${money((tudo.seg/3600)*t.trans)}`);
+  if(tudo.ent || tudo.sai){
+    partes.push(`Claude: ${money((tudo.ent/1e6)*t.entrada + (tudo.sai/1e6)*t.saida)} ` +
+                `(${(tudo.ent/1000).toFixed(0)} mil tokens de entrada, ${(tudo.sai/1000).toFixed(0)} mil de saída)`);
+  }
+  $('gastosNota').textContent = partes.join(' · ') || 'Nenhum consumo registrado ainda.';
+}
+
+/* =====================================================================
    HISTÓRICO E ÁUDIO GUARDADO
    ===================================================================== */
 async function salvarRegistro(){
@@ -1013,6 +1341,9 @@ async function salvarRegistro(){
       falantes: nomes,
       trechos: utterances,
       texto: textoPlano(),
+      texto_revisado: $('revisado').value.trim() || null,
+      tokens_entrada: registro.entrada || 0,
+      tokens_saida: registro.saida || 0,
       resumo: resumoTexto || null,
       notas: $('obs').value.trim() || null
     };
@@ -1023,6 +1354,7 @@ async function salvarRegistro(){
     }, 30000);
     registro.id = j.item?.id || registro.id;
     carregarHistorico();
+    carregarGastos();
   }catch(e){
     aviso('histMsg','warn','Não consegui salvar no histórico: '+e.message);
   }
@@ -1128,14 +1460,32 @@ async function abrirRegistro(id){
     registro = {
       id: it.id, transcriptId: it.transcript_id,
       audioPath: it.audio_path, duracao: it.duracao_seg || 0,
-      origem: it.origem || 'gravado'
+      origem: it.origem || 'gravado',
+      entrada: Number(it.tokens_entrada) || 0,
+      saida: Number(it.tokens_saida) || 0
     };
     $('titulo').value = it.titulo || '';
     $('tipo').value = it.tipo || 'livre';
     $('obs').value = it.notas || '';
 
+    editando = false;
+    $('btnEditar').textContent = 'Corrigir palavras';
+    $('dicaTexto').textContent = 'Toque numa fala para ouvir esse trecho do áudio.';
+
+    if(it.texto_revisado){
+      $('revisado').value = it.texto_revisado;
+      $('revisado').classList.remove('hidden');
+      $('revisaoAcoes').classList.remove('hidden');
+      setTimeout(()=>ajustarAltura($('revisado')), 50);
+    }else{
+      $('revisado').value = '';
+      $('revisado').classList.add('hidden');
+      $('revisaoAcoes').classList.add('hidden');
+    }
+
     montarNomes(); renderTexto();
-    ['cardFalantes','cardTexto','cardResumo'].forEach(i=>$(i).classList.remove('hidden'));
+    await recuperarAudio(it.audio_path);
+    ['cardFalantes','cardTexto','cardRevisao','cardResumo'].forEach(i=>$(i).classList.remove('hidden'));
     if(resumoTexto){
       $('resumo').innerHTML = markdown(resumoTexto);
       $('resumo').classList.remove('hidden');
@@ -1155,6 +1505,32 @@ async function abrirRegistro(id){
   }
 }
 
+/**
+ * Busca um link temporário do áudio guardado, para que o texto continue
+ * clicável quando um registro antigo é reaberto.
+ */
+async function recuperarAudio(caminho){
+  blob = null;
+  if(!caminho){
+    $('player').removeAttribute('src');
+    $('playBox').classList.add('hidden');
+    $('btnBaixarAudio').classList.add('hidden');
+    return;
+  }
+  try{
+    const j = await chamar('/audio/link', {
+      method:'POST', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({ path: caminho, horas: 4 })
+    }, 25000);
+    $('player').src = j.url;
+    $('playBox').classList.remove('hidden');
+    $('fileInfo').textContent = `Áudio guardado · ${duracaoTexto(registro.duracao)}`;
+    $('btnBaixarAudio').classList.add('hidden');   // o download sai pelo próprio tocador
+  }catch(e){
+    $('playBox').classList.add('hidden');
+  }
+}
+
 /* =====================================================================
    EXPORTAÇÃO
    ===================================================================== */
@@ -1166,7 +1542,10 @@ function documento(){
   let s = `SCRIBA — ${tipoTexto()}\n${tituloTexto()}\n${new Date().toLocaleString('pt-BR')}\n\n`;
   if(resumoTexto) s += `${'='.repeat(50)}\nRESUMO\n${'='.repeat(50)}\n\n${resumoTexto}\n\n`;
   if($('obs').value.trim()) s += `NOTAS\n${$('obs').value.trim()}\n\n`;
-  if(!soResumo()) s += `${'='.repeat(50)}\nTRANSCRIÇÃO\n${'='.repeat(50)}\n${textoPlano()}\n`;
+  if(!soResumo()){
+    const revisado = $('revisado').value.trim();
+    s += `${'='.repeat(50)}\n${revisado ? 'TEXTO REVISADO' : 'TRANSCRIÇÃO'}\n${'='.repeat(50)}\n${revisado || textoPlano()}\n`;
+  }
   return s;
 }
 
@@ -1177,7 +1556,10 @@ $('btnMd').onclick = () => {
   let md = `# ${tituloTexto()}\n\n*${tipoTexto()} · ${new Date().toLocaleString('pt-BR')}*\n\n`;
   if(resumoTexto) md += `## Resumo\n\n${resumoTexto}\n\n`;
   if($('obs').value.trim()) md += `## Notas\n\n${$('obs').value.trim()}\n\n`;
-  if(!soResumo()) md += `## Transcrição\n\n${textoPlano()}\n`;
+  if(!soResumo()){
+    const revisado = $('revisado').value.trim();
+    md += `## ${revisado ? 'Texto revisado' : 'Transcrição'}\n\n${revisado || textoPlano()}\n`;
+  }
   baixar(new Blob([md],{type:'text/markdown;charset=utf-8'}), `${nomeSaida()}.md`);
 };
 
@@ -1367,7 +1749,23 @@ function gerarDocx(){
     notas.split('\n').forEach(l => { if(l.trim()) corpo.push(paragrafo(l.trim())); });
   }
 
-  if(!soResumo() && utterances.length){
+  const revisado = $('revisado').value.trim();
+
+  if(!soResumo() && revisado){
+    corpo.push(secao('Texto revisado'));
+    revisado.split('\n').forEach(linha => {
+      const l = linha.trim();
+      if(!l) return;
+      // linhas do tipo "NOME [12:34]" viram cabeçalho de fala
+      if(/^[^a-z]{2,60}\[\d{1,3}:\d{2}\]$/.test(l)){
+        corpo.push(paragrafo(l.replace(/\s*\[(\d{1,3}:\d{2})\]$/, '   $1'), {
+          fonte:'Cinzel', tamanho:9, negrito:true, cor:'C9A227', espacado:true, antes:200, depois:40
+        }));
+      }else{
+        corpo.push(paragrafo(l, {antes:0, depois:80}));
+      }
+    });
+  }else if(!soResumo() && utterances.length){
     corpo.push(secao('Transcrição'));
     let anterior = null;
     utterances.forEach(u => {
@@ -1430,10 +1828,13 @@ function aviso(alvo, tipo, txt){ $(alvo).innerHTML = `<div class="msg ${tipo}">$
 
 function limparResultados(){
   utterances=[]; nomes={}; resumoTexto='';
-  registro = { id:null, transcriptId:null, audioPath:null, duracao:0, origem:'gravado' };
-  ['cardFalantes','cardTexto','cardResumo','exportRow','cardAudio','steps'].forEach(i=>$(i).classList.add('hidden'));
+  registro = { id:null, transcriptId:null, audioPath:null, duracao:0, origem:'gravado', entrada:0, saida:0 };
+  ['cardFalantes','cardTexto','cardRevisao','cardResumo','exportRow','cardAudio','steps','revisaoAcoes'].forEach(i=>$(i).classList.add('hidden'));
   $('resumo').classList.add('hidden');
+  $('revisado').classList.add('hidden'); $('revisado').value='';
+  $('revisaoMsg').innerHTML='';
   $('barraEnvio').classList.add('hidden');
+  editando=false; $('btnEditar').textContent='Corrigir palavras';
   $('transMsg').innerHTML=''; $('resumoMsg').innerHTML=''; $('audioMsg').innerHTML='';
   $('obs').value='';
 }
