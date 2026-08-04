@@ -251,8 +251,11 @@
     </div>
   </div>
 
-  <button id="btnTranscrever" disabled>Transcrever</button>
-  <button class="ghost hidden" id="btnBaixarAudio">Baixar áudio</button>
+  <div class="row">
+    <button id="btnTranscrever" disabled>Transcrever</button>
+    <button class="ghost hidden" id="btnBaixarAudio">Baixar áudio</button>
+    <button class="ghost hidden" id="btnRetomar">Retomar</button>
+  </div>
 
   <ul class="steps hidden" id="steps">
     <li id="s1"><span class="dot"></span> Enviando áudio</li>
@@ -293,7 +296,7 @@
   </div>
 </section>
 
-<footer>SCRIBA · protótipo v0.4</footer>
+<footer>SCRIBA · protótipo v0.5</footer>
 </div>
 
 <script>
@@ -309,7 +312,7 @@ const $ = id => document.getElementById(id);
 let stream=null, rec=null, chunks=[], blob=null;
 let t0=0, acc=0, tick=null, gravando=false, pausado=false;
 let audioCtx=null, analyser=null, rafId=null, wakeLock=null;
-let utterances=[], nomes={}, resumoTexto='';
+let utterances=[], nomes={}, resumoTexto='', processando=false;
 
 /* ================= configuração ================= */
 $('worker').value = normalizarUrl(store.get('scriba_worker') || '');
@@ -560,7 +563,7 @@ async function travarTela(){
 }
 function soltarTela(){ try{ wakeLock?.release(); wakeLock=null; }catch(e){} }
 document.addEventListener('visibilitychange', () => {
-  if(document.visibilityState==='visible' && gravando) travarTela();
+  if(document.visibilityState==='visible' && (gravando || processando)) travarTela();
 });
 
 $('btnBaixarAudio').onclick = () => {
@@ -597,37 +600,92 @@ $('btnTranscrever').onclick = async () => {
       body: JSON.stringify({ audio_url: upJson.upload_url, falantes: (n>0?n:null) })
     }, 30000);
 
-    // 3 — espera
-    let dados=null, voltas=0;
-    while(voltas < 400){
-      await pausa(3000); voltas++;
-      const j = await chamar('/status?id='+encodeURIComponent(stJson.id), {}, 20000);
-      if(j.status==='completed'){ dados=j; break; }
-      if(j.status==='error') throw new Error(j.erro || 'o serviço de transcrição retornou erro');
-      $('s2').innerHTML = `<span class="dot"></span> Transcrevendo e separando falantes · ${voltas*3}s`;
-    }
-    if(!dados) throw new Error('tempo esgotado. O áudio pode ser longo demais para este protótipo.');
-    passo('s2','done');
-
-    // 4 — montagem
-    passo('s3','doing');
-    utterances = dados.utterances || [];
-    if(!utterances.length && dados.texto){
-      utterances = [{speaker:'A', text:dados.texto, start:0, end:0}];
-      aviso('transMsg','warn','O serviço não conseguiu separar as vozes — o texto veio como bloco único. Isso costuma acontecer com áudio de uma pessoa só ou com muita reverberação.');
-    }
-    nomes={};
-    montarNomes(); renderTexto();
-    passo('s3','done');
-    $('cardFalantes').classList.remove('hidden');
-    $('cardTexto').classList.remove('hidden');
-    $('cardResumo').classList.remove('hidden');
-    $('cardTexto').scrollIntoView({behavior:'smooth'});
+    // 3 e 4 — acompanhamento e montagem
+    guardarId(stJson.id);
+    await acompanhar(stJson.id);
   }catch(e){
     ['s1','s2','s3'].forEach(i=>{ if($(i).className==='doing') $(i).className='fail'; });
     aviso('transMsg','err','Deu problema: '+e.message);
   }finally{
     $('btnTranscrever').disabled=false;
+    processando=false; soltarTela();
+  }
+};
+
+/**
+ * Acompanha um trabalho de transcrição até o fim.
+ * Falhas isoladas de rede não derrubam o processo: ele reconecta.
+ */
+async function acompanhar(id){
+  processando = true;
+  travarTela();                 // impede a tela de apagar durante a espera
+  let dados=null, voltas=0, falhas=0, segundos=0;
+
+  while(voltas < 400){
+    await pausa(3000); voltas++; segundos+=3;
+    let j;
+    try{
+      j = await chamar('/status?id='+encodeURIComponent(id), {}, 30000);
+      falhas = 0;
+    }catch(e){
+      falhas++;
+      if(falhas >= 6){
+        throw new Error(`perdi contato com o servidor ${falhas} vezes seguidas. A transcrição pode estar pronta assim mesmo — toque em "Retomar" para buscá-la.`);
+      }
+      $('s2').innerHTML = `<span class="dot"></span> Rede oscilando, reconectando… (${falhas}ª tentativa)`;
+      await pausa(2000);
+      continue;
+    }
+
+    if(j.status==='completed'){ dados=j; break; }
+    if(j.status==='error') throw new Error(j.erro || 'o serviço de transcrição retornou erro');
+    $('s2').innerHTML = `<span class="dot"></span> Transcrevendo e separando falantes · ${segundos}s`;
+  }
+
+  if(!dados) throw new Error('tempo esgotado. O áudio pode ser longo demais para este protótipo.');
+  passo('s2','done');
+
+  passo('s3','doing');
+  utterances = dados.utterances || [];
+  if(!utterances.length && dados.texto){
+    utterances = [{speaker:'A', text:dados.texto, start:0, end:0}];
+    aviso('transMsg','warn','O serviço não conseguiu separar as vozes — o texto veio como bloco único. Isso costuma acontecer com áudio de uma pessoa só ou com muita reverberação.');
+  }
+  if(!utterances.length) throw new Error('a transcrição voltou vazia. Verifique se o microfone captou som.');
+
+  nomes={};
+  montarNomes(); renderTexto();
+  passo('s3','done');
+  $('cardFalantes').classList.remove('hidden');
+  $('cardTexto').classList.remove('hidden');
+  $('cardResumo').classList.remove('hidden');
+  $('cardTexto').scrollIntoView({behavior:'smooth'});
+}
+
+/* ---- retomada de um trabalho interrompido ---- */
+function guardarId(id){
+  store.set('scriba_ultimo_id', id);
+  $('btnRetomar').classList.remove('hidden');
+}
+function verificarRetomada(){
+  if(store.get('scriba_ultimo_id')) $('btnRetomar').classList.remove('hidden');
+}
+$('btnRetomar').onclick = async () => {
+  const id = store.get('scriba_ultimo_id');
+  if(!id){ aviso('transMsg','err','Não há transcrição anterior guardada.'); return; }
+  $('transMsg').innerHTML='';
+  $('steps').classList.remove('hidden');
+  $('s1').className='done'; $('s1').innerHTML='<span class="dot"></span> Áudio já enviado';
+  $('s2').className='doing'; $('s3').className='';
+  $('btnRetomar').disabled=true;
+  try{
+    await acompanhar(id);
+  }catch(e){
+    ['s2','s3'].forEach(i=>{ if($(i).className==='doing') $(i).className='fail'; });
+    aviso('transMsg','err','Deu problema: '+e.message);
+  }finally{
+    $('btnRetomar').disabled=false;
+    processando=false; soltarTela();
   }
 };
 
@@ -755,6 +813,8 @@ function limparResultados(){
   $('resumo').classList.add('hidden'); $('steps').classList.add('hidden');
   $('transMsg').innerHTML=''; $('resumoMsg').innerHTML='';
 }
+
+verificarRetomada();
 
 /* aviso se a página não estiver em HTTPS */
 if(location.protocol!=='https:' && location.hostname!=='localhost' && location.protocol!=='file:'){
