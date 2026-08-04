@@ -293,7 +293,7 @@
   </div>
 </section>
 
-<footer>SCRIBA · protótipo v0.1</footer>
+<footer>SCRIBA · protótipo v0.3</footer>
 </div>
 
 <script>
@@ -324,8 +324,7 @@ $('btnTestarWorker').onclick = async () => {
   if(!workerUrl()){ aviso('workerMsg','err','Informe o endereço do Worker.'); return; }
   aviso('workerMsg','ok','Verificando…');
   try{
-    const r = await comPrazo(workerUrl()+'/teste', {}, 15000);
-    const j = await r.json();
+    const j = await chamar('/teste', {}, 15000);
     const falta = [];
     if(!j.assemblyai) falta.push('ASSEMBLYAI_KEY');
     if(!j.anthropic)  falta.push('ANTHROPIC_KEY');
@@ -335,6 +334,27 @@ $('btnTestarWorker').onclick = async () => {
     aviso('workerMsg','err','Não consegui falar com o Worker: '+e.message+'. Confira se a URL está certa e se o Deploy foi feito.');
   }
 };
+
+/** Chama o Worker e devolve JSON. Quando algo vem errado, diz o que veio. */
+async function chamar(caminho, opcoes, ms){
+  let r;
+  try{
+    r = await comPrazo(workerUrl()+caminho, opcoes, ms);
+  }catch(e){
+    throw new Error(`não consegui alcançar ${caminho} — ${e.message}`);
+  }
+
+  const bruto = await r.text();
+  let j;
+  try{
+    j = JSON.parse(bruto);
+  }catch(e){
+    const amostra = (bruto || '').trim().slice(0,180).replace(/</g,'‹') || '(resposta vazia)';
+    throw new Error(`${caminho} respondeu ${r.status}, mas não em JSON. Veio isto: ${amostra}`);
+  }
+  if(!r.ok) throw new Error(j.erro || `${caminho} respondeu ${r.status}`);
+  return j;
+}
 
 /** Chamada com prazo máximo — evita ficar esperando para sempre. */
 async function comPrazo(url, opcoes, ms){
@@ -542,31 +562,28 @@ $('btnTranscrever').onclick = async () => {
     // 1 — envio
     passo('s1','doing');
     $('s1').innerHTML = `<span class="dot"></span> Enviando áudio · ${(blob.size/1048576).toFixed(2)} MB`;
-    const up = await comPrazo(workerUrl()+'/upload', {
-      method:'POST', headers:{'Content-Type':'application/octet-stream'}, body: blob
+    // text/plain evita a consulta prévia de CORS, que o Safari trata com rigor.
+    // O corpo continua sendo o áudio binário; o Worker lê os bytes do mesmo jeito.
+    const upJson = await chamar('/upload', {
+      method:'POST', headers:{'Content-Type':'text/plain'}, body: blob
     }, 180000);
-    const upJson = await up.json();
-    if(!up.ok) throw new Error(upJson.erro || 'falha no envio');
     passo('s1','done');
 
     // 2 — transcrição
     passo('s2','doing');
     const n = parseInt($('nFal').value);
-    const st = await fetch(workerUrl()+'/transcrever', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+    const stJson = await chamar('/transcrever', {
+      method:'POST', headers:{'Content-Type':'text/plain'},
       body: JSON.stringify({ audio_url: upJson.upload_url, falantes: (n>0?n:null) })
-    });
-    const stJson = await st.json();
-    if(!st.ok) throw new Error(stJson.erro || 'falha ao iniciar a transcrição');
+    }, 30000);
 
     // 3 — espera
     let dados=null, voltas=0;
     while(voltas < 400){
       await pausa(3000); voltas++;
-      const r = await comPrazo(workerUrl()+'/status?id='+encodeURIComponent(stJson.id), {}, 20000);
-      const j = await r.json();
+      const j = await chamar('/status?id='+encodeURIComponent(stJson.id), {}, 20000);
       if(j.status==='completed'){ dados=j; break; }
-      if(j.status==='error') throw new Error(j.erro || 'o serviço retornou erro');
+      if(j.status==='error') throw new Error(j.erro || 'o serviço de transcrição retornou erro');
       $('s2').innerHTML = `<span class="dot"></span> Transcrevendo e separando falantes · ${voltas*3}s`;
     }
     if(!dados) throw new Error('tempo esgotado. O áudio pode ser longo demais para este protótipo.');
@@ -648,12 +665,10 @@ $('btnResumo').onclick = async () => {
   $('resumoMsg').innerHTML='<div class="msg ok">Gerando…</div>';
   $('btnResumo').disabled=true;
   try{
-    const r = await fetch(workerUrl()+'/resumo', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+    const j = await chamar('/resumo', {
+      method:'POST', headers:{'Content-Type':'text/plain'},
       body: JSON.stringify({ texto: textoPlano(), tipo: $('tipo').value, notas: $('obs').value.trim() })
-    });
-    const j = await r.json();
-    if(!r.ok) throw new Error(j.erro || 'falha ao gerar');
+    }, 180000);
     resumoTexto = j.resumo;
     $('resumo').innerHTML = markdown(resumoTexto);
     $('resumo').classList.remove('hidden');
