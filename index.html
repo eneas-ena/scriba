@@ -203,8 +203,24 @@
   <!-- --- gravar --- -->
   <div id="paineGravar">
     <div class="field">
+      <label for="fonte">De onde vem o som</label>
+      <select id="fonte">
+        <option value="mic">Microfone</option>
+        <option value="tela">Áudio de uma aba do navegador</option>
+        <option value="ambos">Aba do navegador + meu microfone</option>
+      </select>
+      <div class="hint" id="dicaFonte">Escolha "aba do navegador" para gravar uma aula que esteja tocando no computador.</div>
+    </div>
+
+    <div class="field">
       <label for="mic">Entrada de áudio</label>
       <select id="mic"><option>Toque em "Liberar microfone"</option></select>
+    </div>
+
+    <div class="field">
+      <label for="formato">Formato da gravação</label>
+      <select id="formato"></select>
+      <div class="hint">M4A abre em qualquer aparelho e programa. WebM ocupa menos espaço, mas alguns programas não reconhecem.</div>
     </div>
     <div class="row tight" style="margin-bottom:14px">
       <button class="small ghost" id="btnPermitir">Liberar microfone</button>
@@ -251,6 +267,10 @@
   <div id="playBox" class="hidden mt">
     <audio id="player" controls style="width:100%"></audio>
     <div class="hint" id="fileInfo"></div>
+    <div class="row tight mt">
+      <button class="small ghost hidden" id="btnWav">Converter para WAV</button>
+    </div>
+    <div id="conversaoMsg"></div>
   </div>
 </section>
 
@@ -431,7 +451,7 @@
 const WORKER_PADRAO = 'https://scriba-ia.eneaspr.workers.dev';
 
 /* Versão do aplicativo, exibida sob o nome no cabeçalho. */
-const VERSAO_APP = '0.10';
+const VERSAO_APP = '0.11';
 
 /* ---------- armazenamento tolerante ---------- */
 const mem = {};
@@ -446,6 +466,7 @@ const $ = id => document.getElementById(id);
 let stream=null, rec=null, chunks=[], blob=null, nomeArquivo='';
 let t0=0, acc=0, tick=null, gravando=false, pausado=false, processando=false;
 let audioCtx=null, analyser=null, rafId=null, wakeLock=null;
+let fluxosExtras=[], mixCtx=null;
 let utterances=[], nomes={}, resumoTexto='';
 let editando=false, tocandoIndice=-1;
 let temSupabase=false;
@@ -625,6 +646,18 @@ async function listarMics(){
   if(!ins.length) sel.innerHTML='<option>Nenhum microfone encontrado</option>';
 }
 $('mic').onchange = () => store.set('scriba_mic', $('mic').value);
+
+$('fonte').onchange = () => {
+  const fonte = $('fonte').value;
+  const soTela = fonte === 'tela';
+  $('mic').parentElement.classList.toggle('hidden', soTela);
+  $('btnTestar').classList.toggle('hidden', soTela);
+  $('btnPermitir').classList.toggle('hidden', soTela);
+  $('dicaFonte').innerHTML = fonte === 'mic'
+    ? 'Escolha "aba do navegador" para gravar uma aula que esteja tocando no computador.'
+    : 'Ao clicar em gravar, o navegador vai pedir o que compartilhar. Escolha a <strong>aba</strong> onde a aula está tocando e marque <strong>"Compartilhar áudio da guia"</strong>. Só funciona no computador.';
+  store.set('scriba_fonte', fonte);
+};
 navigator.mediaDevices.addEventListener?.('devicechange', () => { if($('mic').options.length>1) listarMics(); });
 
 function constraints(){
@@ -677,11 +710,36 @@ function pararMedidor(){
 /* =====================================================================
    GRAVAÇÃO
    ===================================================================== */
-function mime(){
-  const opts=['audio/webm;codecs=opus','audio/webm','audio/mp4;codecs=mp4a.40.2','audio/mp4','audio/aac'];
-  for(const m of opts){ if(window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m; }
-  return '';
+/**
+ * Lista os formatos que este navegador consegue gravar, do mais
+ * compatível para o mais econômico.
+ */
+const FORMATOS = [
+  { rotulo:'M4A / AAC — mais compatível', tipos:['audio/mp4;codecs=mp4a.40.2','audio/mp4','audio/aac'] },
+  { rotulo:'WebM / Opus — menor arquivo', tipos:['audio/webm;codecs=opus','audio/webm'] },
+  { rotulo:'OGG / Opus',                  tipos:['audio/ogg;codecs=opus','audio/ogg'] }
+];
+
+function montarFormatos(){
+  const sel = $('formato');
+  sel.innerHTML = '';
+  const salvo = store.get('scriba_formato');
+  FORMATOS.forEach(f => {
+    const suportado = f.tipos.find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t));
+    if(!suportado) return;
+    const o = document.createElement('option');
+    o.value = suportado;
+    o.textContent = f.rotulo;
+    if(suportado === salvo) o.selected = true;
+    sel.appendChild(o);
+  });
+  if(!sel.options.length){
+    sel.innerHTML = '<option value="">formato padrão do navegador</option>';
+  }
 }
+$('formato').onchange = () => store.set('scriba_formato', $('formato').value);
+
+function mime(){ return $('formato').value || ''; }
 function ext(tipo){
   if(!tipo) return 'bin';
   if(tipo.includes('webm')) return 'webm';
@@ -694,10 +752,51 @@ function ext(tipo){
 
 $('btnRec').onclick = () => gravando ? parar() : iniciar();
 
+/**
+ * Monta o fluxo de áudio conforme a fonte escolhida. Para capturar o som
+ * de uma aula, o navegador exige que o usuário compartilhe uma aba e
+ * marque a opção de incluir o áudio dela.
+ */
+async function fluxoDaFonte(){
+  const fonte = $('fonte').value;
+  if(fonte === 'mic') return await navigator.mediaDevices.getUserMedia(constraints());
+
+  if(!navigator.mediaDevices.getDisplayMedia)
+    throw new Error('este navegador não consegue capturar o som de outras abas. No Mac, use o Chrome. No iPhone, não é possível — grave a tela pelo iOS e envie o arquivo.');
+
+  const tela = await navigator.mediaDevices.getDisplayMedia({
+    video: true,
+    audio: { echoCancellation:false, noiseSuppression:false, autoGainControl:false }
+  });
+
+  if(!tela.getAudioTracks().length){
+    tela.getTracks().forEach(t => t.stop());
+    throw new Error('veio imagem, mas não veio som. Ao escolher o que compartilhar, prefira uma ABA (não a tela inteira) e marque a caixa "Compartilhar áudio da guia".');
+  }
+  fluxosExtras.push(tela);
+
+  if(fonte === 'ambos'){
+    const microfone = await navigator.mediaDevices.getUserMedia(constraints());
+    fluxosExtras.push(microfone);
+    return misturar([tela, microfone]);
+  }
+  return new MediaStream(tela.getAudioTracks());
+}
+
+/** Junta duas origens de som num fluxo só. */
+function misturar(fluxos){
+  mixCtx = new (window.AudioContext||window.webkitAudioContext)();
+  const destino = mixCtx.createMediaStreamDestination();
+  fluxos.forEach(f => {
+    if(f.getAudioTracks().length) mixCtx.createMediaStreamSource(f).connect(destino);
+  });
+  return destino.stream;
+}
+
 async function iniciar(){
   try{
     limparResultados();
-    stream = await navigator.mediaDevices.getUserMedia(constraints());
+    stream = await fluxoDaFonte();
     const m = mime();
     rec = new MediaRecorder(stream, m ? {mimeType:m, audioBitsPerSecond:48000} : {});
     chunks=[];
@@ -757,6 +856,9 @@ function encerrarCaptura(){
   $('btnDescartar').classList.add('hidden');
   pararMedidor();
   if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+  fluxosExtras.forEach(f => f.getTracks().forEach(t => t.stop()));
+  fluxosExtras = [];
+  if(mixCtx){ mixCtx.close().catch(()=>{}); mixCtx=null; }
   soltarTela();
 }
 
@@ -817,6 +919,8 @@ function mostrarAudio(){
   atualizarInfoArquivo();
   $('btnTranscrever').disabled=false;
   $('btnBaixarAudio').classList.remove('hidden');
+  $('btnWav').classList.toggle('hidden', /wav/i.test(blob.type||''));
+  $('conversaoMsg').innerHTML='';
 }
 
 function atualizarInfoArquivo(){
@@ -829,6 +933,77 @@ function atualizarInfoArquivo(){
 }
 
 $('btnBaixarAudio').onclick = () => { if(blob) baixar(blob, `scriba-${carimbo()}.${ext(blob.type)}`); };
+
+/* ---------------------------------------------------------------------
+   CONVERSÃO PARA WAV
+   O navegador decodifica o áudio e reescreve como WAV sem compressão.
+   Não depende de biblioteca externa, mas o arquivo fica grande: cerca
+   de 5,8 MB por minuto.
+   --------------------------------------------------------------------- */
+$('btnWav').onclick = async () => {
+  if(!blob) return;
+  const minutos = (registro.duracao || 0) / 60;
+  const previsto = minutos * 5.8;
+  if(minutos > 20 && !confirm(
+      `Este áudio tem ${duracaoTexto(registro.duracao)}. Em WAV ele deve passar de ${previsto.toFixed(0)} MB `
+    + `e a conversão consome bastante memória. Deseja continuar?`)) return;
+
+  $('btnWav').disabled = true;
+  aviso('conversaoMsg','ok','Convertendo…');
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const bruto = await blob.arrayBuffer();
+    const buffer = await ctx.decodeAudioData(bruto);
+    const wav = montarWav(buffer);
+    await ctx.close();
+    baixar(wav, `scriba-${carimbo()}.wav`);
+    aviso('conversaoMsg','ok',`Pronto: ${(wav.size/1048576).toFixed(1)} MB.`);
+  }catch(e){
+    aviso('conversaoMsg','err','Não consegui converter: '+e.message+'. Em arquivos muito longos, a memória do navegador não dá conta.');
+  }finally{
+    $('btnWav').disabled = false;
+  }
+};
+
+/** Escreve um AudioBuffer como WAV mono de 16 bits. */
+function montarWav(buffer){
+  const canais = buffer.numberOfChannels;
+  const total = buffer.length;
+  const taxa = buffer.sampleRate;
+
+  // Mistura os canais num só: voz não ganha nada com estéreo e o arquivo cai pela metade
+  const amostras = new Float32Array(total);
+  for(let c=0;c<canais;c++){
+    const dados = buffer.getChannelData(c);
+    for(let i=0;i<total;i++) amostras[i] += dados[i] / canais;
+  }
+
+  const bytes = new ArrayBuffer(44 + total*2);
+  const v = new DataView(bytes);
+  const texto = (pos, str) => { for(let i=0;i<str.length;i++) v.setUint8(pos+i, str.charCodeAt(i)); };
+
+  texto(0, 'RIFF');
+  v.setUint32(4, 36 + total*2, true);
+  texto(8, 'WAVE');
+  texto(12, 'fmt ');
+  v.setUint32(16, 16, true);      // tamanho do bloco
+  v.setUint16(20, 1, true);       // PCM
+  v.setUint16(22, 1, true);       // mono
+  v.setUint32(24, taxa, true);
+  v.setUint32(28, taxa*2, true);  // bytes por segundo
+  v.setUint16(32, 2, true);       // alinhamento
+  v.setUint16(34, 16, true);      // bits por amostra
+  texto(36, 'data');
+  v.setUint32(40, total*2, true);
+
+  let pos = 44;
+  for(let i=0;i<total;i++){
+    const a = Math.max(-1, Math.min(1, amostras[i]));
+    v.setInt16(pos, a < 0 ? a*0x8000 : a*0x7FFF, true);
+    pos += 2;
+  }
+  return new Blob([bytes], {type:'audio/wav'});
+}
 
 /* =====================================================================
    TRANSCRIÇÃO
@@ -1568,6 +1743,7 @@ async function recuperarAudio(caminho){
     $('player').removeAttribute('src');
     $('playBox').classList.add('hidden');
     $('btnBaixarAudio').classList.add('hidden');
+    $('btnWav').classList.add('hidden');
     return;
   }
   try{
@@ -1580,6 +1756,7 @@ async function recuperarAudio(caminho){
     $('playBox').classList.remove('hidden');
     $('fileInfo').textContent = `Áudio guardado · ${duracaoTexto(registro.duracao)}`;
     $('btnBaixarAudio').classList.add('hidden');   // o download sai pelo próprio tocador
+    $('btnWav').classList.add('hidden');
   }catch(e){
     $('playBox').classList.add('hidden');
   }
@@ -1897,6 +2074,9 @@ function limparResultados(){
    INÍCIO
    ===================================================================== */
 $('versao').textContent = 'v' + VERSAO_APP;
+montarFormatos();
+$('fonte').value = store.get('scriba_fonte') || 'mic';
+$('fonte').onchange();
 if(store.get('scriba_ultimo_id')) $('btnRetomar').classList.remove('hidden');
 if(workerUrl()){ store.set('scriba_worker', workerUrl()); verificarWorker(true); }
 else { estado('mal','endereço do Worker não definido'); abrirConfig(); }
