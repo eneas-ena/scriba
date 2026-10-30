@@ -166,7 +166,31 @@
   .hidden{display:none!important}
   .mt{margin-top:14px}
   footer{text-align:center;font-family:var(--ui);font-size:.72rem;color:var(--muted);letter-spacing:.08em;padding:28px 0 10px}
+
+  /* ---------- botões do topo ---------- */
+  .topo-acoes{display:flex;gap:8px;justify-content:center;margin-top:10px}
+  .topo-acoes button{background:none;border:1px solid rgba(201,162,39,.35);color:var(--muted);font-family:var(--ui);font-size:.75rem;padding:5px 10px;border-radius:8px;width:auto}
+  /* ---------- MODO CLARO ---------- */
+  html[data-theme=light]{--navy:#f6f1e4;--navy-2:#fffdf6;--navy-3:#efe7d2;--linen:#1b2438;--muted:#6b6658;--gold:#a77f17;--gold-soft:#8a6a12}
+  html[data-theme=light] button:not(.ghost):not(.perigo):not(.aba):not(.elo):not(.rec-btn){color:#fffdf6}
+  html[data-theme=light] .topo-acoes button{color:var(--muted)!important}
+  html[data-theme=light] .aba{color:var(--muted)}
+  html[data-theme=light] .aba.ativa{color:var(--gold)}
+  html[data-theme=light] button.perigo{color:#9b2c2e}
+  html[data-theme=light] .topo-acoes button,html[data-theme=light] .elo{color:var(--muted)}
+  html[data-theme=light] .msg.err{color:#8e2a2c}
+  html[data-theme=light] .msg.ok{color:#22603a}
+  html[data-theme=light] .msg.warn{color:#7a4a12}
 </style>
+<script src="porteiro.js" data-app="SCRIBA" data-versao="1.1" data-protege="https://scriba-ia.eneaspr.workers.dev"></script>
+<script>
+function temaSC(){ try{ return localStorage.getItem("scriba_tema")==="claro"?"claro":"escuro"; }catch(e){ return "escuro"; } }
+function aplicarTemaSC(){ const c=temaSC()==="claro"; document.documentElement.dataset.theme=c?"light":"dark";
+  const b=document.getElementById("btnTemaSC"); if(b) b.textContent=c?"🌙 Escuro":"☀️ Claro";
+  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.content=c?"#f6f1e4":"#0F1B33"; }
+function trocarTemaSC(){ try{ localStorage.setItem("scriba_tema", temaSC()==="claro"?"escuro":"claro"); }catch(e){} aplicarTemaSC(); }
+aplicarTemaSC(); document.addEventListener("DOMContentLoaded", aplicarTemaSC);
+</script>
 </head>
 <body>
 <div class="wrap">
@@ -176,6 +200,11 @@
   <div class="versao" id="versao">v0.7</div>
   <p>Gravação · Transcrição com falantes · Resumo</p>
   <button class="elo" id="btnConfig"><span class="luz"></span><span id="estado">verificando conexão…</span></button>
+  <div class="topo-acoes">
+    <button type="button" id="btnTemaSC" onclick="trocarTemaSC()">☀️ Claro</button>
+    <button type="button" onclick="porteiroAtualizar()">⟳ Atualizar</button>
+    <button type="button" onclick="porteiroSair()">Sair</button>
+  </div>
 </header>
 
 <!-- ============ CONFIGURAÇÃO (oculta; abre pelo cabeçalho) ============ -->
@@ -454,7 +483,7 @@
 const WORKER_PADRAO = 'https://scriba-ia.eneaspr.workers.dev';
 
 /* Versão do aplicativo, exibida sob o nome no cabeçalho. */
-const VERSAO_APP = '1.0';
+const VERSAO_APP = '1.1';
 
 /* ---------- armazenamento tolerante ---------- */
 const mem = {};
@@ -2117,6 +2146,8 @@ $('fonte').onchange();
 if(store.get('scriba_ultimo_id')) $('btnRetomar').classList.remove('hidden');
 if(workerUrl()){ store.set('scriba_worker', workerUrl()); verificarWorker(true); }
 else { estado('mal','endereço do Worker não definido'); abrirConfig(); }
+// depois do login, confere o Worker de novo (a primeira tentativa pode ter esperado o login)
+window.addEventListener('porteiro:entrou', ()=>{ if(workerUrl()) verificarWorker(true); });
 
 if(location.protocol!=='https:' && location.hostname!=='localhost' && location.protocol!=='file:'){
   aviso('transMsg','warn','O microfone só funciona em HTTPS. Publique no GitHub Pages para testar de verdade.');
